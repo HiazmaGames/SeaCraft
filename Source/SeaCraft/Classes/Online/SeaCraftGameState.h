@@ -28,6 +28,9 @@ class ASeaCraftGameState : public AGameState
 	UFUNCTION(BlueprintCallable, Category = "World|Ocean")
 	FVector GetOceanWaveVelocity(FVector& Location) const;
 
+	/** How much waves are defined by normal map */
+	int32 GetOceanWavesNum() const;
+
 	// Begin AActor interface
 	virtual void BeginPlay() OVERRIDE;
 	// End AActor interface

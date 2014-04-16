@@ -342,9 +342,6 @@ void UShipVehicleMovementComponent::PerformWaveReaction(float DeltaTime)
 	FVector X, Y, Z;
 	GetAxes(OldRotation, X, Y, Z);
 
-	// Total dots altitude
-	FVector TensionMoveResult = FVector(0.0f, 0.0f, 0.0f);
-
 	// Process tension dots and get torque from wind/waves
 	for (FVector TensionDot : TensionDots)
 	{
@@ -363,7 +360,7 @@ void UShipVehicleMovementComponent::PerformWaveReaction(float DeltaTime)
 		}
 		
 		// Surface normal (not modified!)
-		FVector DotSurfaceNormal = GetSurfaceNormal(TensionDotWorld);
+		FVector DotSurfaceNormal = GetSurfaceNormal(TensionDotWorld) * GetSurfaceWavesNum();
 		// Modify normal with real Z value and normalize it
 		DotSurfaceNormal.Z = GetOceanLevel(TensionDotWorld);
 		DotSurfaceNormal.Normalize();
@@ -372,12 +369,14 @@ void UShipVehicleMovementComponent::PerformWaveReaction(float DeltaTime)
 		// rho = 1.03f for ocean water
 		FVector WaveVelocity = GetWaveVelocity(TensionDotWorld);
 		float DotQ = 0.515f * FMath::Square(WaveVelocity.Size());
-		FVector WaveForce = DotQ * DotSurfaceNormal * (-DotAltitude) * TensionDepthFactor;
+		FVector WaveForce = FVector(0.0,0.0,1.0) * DotQ /* DotSurfaceNormal*/ * (-DotAltitude) * TensionDepthFactor;
 		
 		// We don't want Z to be affected by DotQ
 		WaveForce.Z /= DotQ;
 
-		TensionMoveResult += WaveForce;
+		// Scale to DeltaTime to break FPS addiction
+		WaveForce *= DeltaTime;
+
 		UpdatedComponent->AddForceAtLocation(WaveForce * Mass, TensionDotWorld);
 	}
 
@@ -437,6 +436,17 @@ FLinearColor UShipVehicleMovementComponent::GetSurfaceNormal(FVector& WorldLocat
 	}
 
 	return FVector();
+}
+
+int32 UShipVehicleMovementComponent::GetSurfaceWavesNum() const
+{
+	ASeaCraftGameState* const MyGameState = Cast<ASeaCraftGameState>(GetWorld()->GameState);
+	if (MyGameState)
+	{
+		return MyGameState->GetOceanWavesNum();
+	}
+
+	return 0;
 }
 
 FVector UShipVehicleMovementComponent::GetWaveVelocity(FVector& WorldLocation) const

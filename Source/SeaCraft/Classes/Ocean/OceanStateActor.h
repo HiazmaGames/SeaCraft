@@ -72,6 +72,9 @@ class AOceanStateActor : public AActor
 	/** Wave velocity is determined by UV change rate */
 	FVector GetOceanWaveVelocity(FVector& Location) const;
 
+	/** How much waves are defined by normal map */
+	int32 GetOceanWavesNum() const;
+
 	// Begin AActor interface
 	virtual void PostInitializeComponents() OVERRIDE;
 	// End AActor interface

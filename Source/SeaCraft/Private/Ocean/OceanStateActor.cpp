@@ -153,9 +153,14 @@ FVector AOceanStateActor::GetOceanWaveVelocity(FVector& Location) const
 	FVector WaveVelocity = FVector(WaveHeightPannerX, WaveHeightPannerY, 0.0f);
 
 	// Scale to the world size (in m/sec!)
-	WaveVelocity *= WorldPositionDivider * WaveUVDivider / 100.0f * HeightMapWaves;
+	WaveVelocity *= WorldPositionDivider * WaveUVDivider / 100.0f;
 
 	return WaveVelocity;
+}
+
+int32 AOceanStateActor::GetOceanWavesNum() const
+{
+	return HeightMapWaves;
 }
 
 FColor AOceanStateActor::GetHeighMapPixelColor(float U, float V) const

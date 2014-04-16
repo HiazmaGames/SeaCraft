@@ -72,3 +72,13 @@ FVector ASeaCraftGameState::GetOceanWaveVelocity(FVector& Location) const
 
 	return FVector();
 }
+
+int32 ASeaCraftGameState::GetOceanWavesNum() const
+{
+	if (MainOceanStateActor.IsValid())
+	{
+		return MainOceanStateActor->GetOceanWavesNum();
+	}
+
+	return 1;
+}

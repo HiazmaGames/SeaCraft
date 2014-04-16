@@ -157,6 +157,9 @@ protected:
 	/** Horizontal wave velocity */
 	FVector GetWaveVelocity(FVector& WorldLocation) const;
 
+	/** How much to scale surface normal to get movement value */
+	int32 GetSurfaceWavesNum() const;
+
 protected:
 
 	// replicated state of vehicle 
