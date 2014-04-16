@@ -46,6 +46,8 @@ AOceanStateActor::AOceanStateActor(const class FPostConstructInitializePropertie
 #endif // WITH_EDITORONLY_DATA
 
 	// Set defaults
+	HeightMapWaves = 1;
+
 	WorldPositionDivider = 0.5f;
 	WaveUVDivider = 11000.0f;
 
@@ -151,7 +153,7 @@ FVector AOceanStateActor::GetOceanWaveVelocity(FVector& Location) const
 	FVector WaveVelocity = FVector(WaveHeightPannerX, WaveHeightPannerY, 0.0f);
 
 	// Scale to the world size (in m/sec!)
-	WaveVelocity *= WorldPositionDivider * WaveUVDivider / 100.0f;
+	WaveVelocity *= WorldPositionDivider * WaveUVDivider / 100.0f * HeightMapWaves;
 
 	return WaveVelocity;
 }

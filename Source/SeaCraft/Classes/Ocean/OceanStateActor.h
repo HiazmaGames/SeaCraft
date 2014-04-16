@@ -59,6 +59,10 @@ class AOceanStateActor : public AActor
 	UPROPERTY(EditAnywhere, Category = OceanSetup)
 	class UTexture2D* OceanHeightMap;
 
+	/** How much waves are defined by normal map. Affects XY wave velocity. */
+	UPROPERTY(EditAnywhere, Category = OceanSetup)
+	int32 HeightMapWaves;
+
 	/** Get ocean level at desired position */
 	float GetOceanLevelAtLocation(FVector& Location) const;
 
