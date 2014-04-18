@@ -31,7 +31,7 @@ UShipVehicleMovementComponent::UShipVehicleMovementComponent(const class FPostCo
 	TensionTorqueFactor = 0.01f;
 	TensionTorqueRollFactor = 10000000.0f;
 	TensionTorquePitchFactor = 30.0f;	// Pitch is mostly controlled by tesntion dots
-	TensionDepthFactor = 10.0f;
+	TensionDepthFactor = 100.0f;
 
 	AltitudeFactor = 10.0f;
 	VelocityFactor = 1.0f;
