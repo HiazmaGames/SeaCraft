@@ -21,6 +21,14 @@ class AShipVehicle : public ASeaCraftVehicle
 	UPROPERTY(Category = Vehicle, VisibleDefaultsOnly, BlueprintReadOnly)
 	TSubobjectPtr<class UShipVehicleMovementComponent> VehicleMovement;
 
+	/** Arm to hold the camera */
+	UPROPERTY(Category = Vehicle, VisibleDefaultsOnly, BlueprintReadOnly)
+	TSubobjectPtr<class USpringArmComponent> CameraSpringArm;
+
+	/** Main vehicle camera */
+	UPROPERTY(Category = Vehicle, VisibleDefaultsOnly, BlueprintReadOnly)
+	TSubobjectPtr<class UCameraComponent> VehicleCamera;
+
 	/** Name of the MeshComponent. Use this name if you want to prevent creation of the component (with PCIP.DoNotCreateDefaultSubobject). */
 	static FName VehicleMeshComponentName;
 

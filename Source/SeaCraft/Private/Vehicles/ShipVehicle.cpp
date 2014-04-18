@@ -19,6 +19,12 @@ AShipVehicle::AShipVehicle(const class FPostConstructInitializeProperties& PCIP)
 	VehicleMesh->bGenerateOverlapEvents = true;
 	RootComponent = VehicleMesh;
 
+	CameraSpringArm = PCIP.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("ShipCameraSpringArm"));
+	CameraSpringArm->AttachTo(VehicleMesh);
+
+	VehicleCamera = PCIP.CreateDefaultSubobject<UCameraComponent>(this, TEXT("ShipVehicleCamera"));
+	VehicleCamera->AttachTo(CameraSpringArm);
+
 	VehicleMovement = PCIP.CreateDefaultSubobject<UShipVehicleMovementComponent>(this, VehicleMovementComponentName);
 	VehicleMovement->SetIsReplicated(true); // Enable replication by default
 	VehicleMovement->UpdatedComponent = VehicleMesh;
