@@ -52,7 +52,7 @@ class ASeaCraftVehicle : public APawn
 	GENERATED_UCLASS_BODY()
 
 	/** Information for each weapon a player may control */
-	UPROPERTY(Category = Vehicle, VisibleDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(Category = Vehicle, EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FVWeaponData> VehicleWeapons;
 	
 };
