@@ -5,7 +5,10 @@
 ASeaCraftPlayerController::ASeaCraftPlayerController(const class FPostConstructInitializeProperties& PCIP)
 	: Super(PCIP)
 {
-
+	bAllowGameActions = true;
 }
 
-
+bool ASeaCraftPlayerController::IsGameInputAllowed() const
+{
+	return bAllowGameActions && !bCinematicMode;
+}
