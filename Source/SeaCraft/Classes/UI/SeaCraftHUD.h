@@ -1,5 +1,7 @@
 // Copyright 2011-2014 UFNA, LLC. All Rights Reserved.
 
+#pragma once
+
 #include "SeaCraftHUD.generated.h"
 
 /**
