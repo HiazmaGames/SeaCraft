@@ -7,6 +7,10 @@ USeaCraftVehicleWeaponComponent::USeaCraftVehicleWeaponComponent(const class FPo
 {
 	bWantsToFire = false;
 	CurrentState = EVWeaponState::Idle;
+
+	CurrentAmmo = 0;
+	TimeBetweenShots = 0.2f;
+	LastFireTime = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,12 +89,68 @@ bool USeaCraftVehicleWeaponComponent::CanFire() const
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// Ammo
+
+void USeaCraftVehicleWeaponComponent::GiveAmmo(int AddAmount)
+{
+	// @TODO Check max ammo capacity reached
+	CurrentAmmo += AddAmount;
+}
+
+void USeaCraftVehicleWeaponComponent::UseAmmo()
+{
+	if (!HasInfiniteAmmo())
+	{
+		CurrentAmmo--;
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
 void USeaCraftVehicleWeaponComponent::HandleFiring()
 {
-	// @TODO Make a shot, consume ammo, etc.
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+
+	if ((CurrentAmmo > 0 || HasInfiniteAmmo()) && CanFire())
+	{
+		if (MyPawn && MyPawn->IsLocallyControlled())
+		{
+			FireWeapon();
+
+			UseAmmo();
+
+			// @TODO Send vehicle event to trigger effects
+		}
+	}
+	else if (MyPawn && MyPawn->IsLocallyControlled())
+	{
+		if (GetCurrentAmmo() == 0 && !bRefiring)
+		{
+			// TODO Notify out of ammo
+		}
+	}
+
+	if (MyPawn && MyPawn->IsLocallyControlled())
+	{
+		// Local client will notify server
+		if (MyPawn->Role < ROLE_Authority)
+		{
+			ServerHandleFiring();
+		}
+
+		// Setup refire timer
+		bRefiring = (CurrentState == EVWeaponState::Firing && TimeBetweenShots > 0.0f);
+		if (bRefiring)
+		{
+			MyPawn->GetWorldTimerManager().SetTimer(this, &USeaCraftVehicleWeaponComponent::HandleFiring, TimeBetweenShots, false);
+		}
+	}
+
+	LastFireTime = GetWorld()->GetTimeSeconds();
 }
 
 bool USeaCraftVehicleWeaponComponent::ServerHandleFiring_Validate()
@@ -125,4 +185,21 @@ void USeaCraftVehicleWeaponComponent::DetermineWeaponState()
 EVWeaponState::Type USeaCraftVehicleWeaponComponent::GetCurrentState() const
 {
 	return CurrentState;
+}
+
+int32 USeaCraftVehicleWeaponComponent::GetCurrentAmmo() const
+{
+	return CurrentAmmo;
+}
+
+bool USeaCraftVehicleWeaponComponent::HasInfiniteAmmo() const
+{
+	return false;
+}
+
+void USeaCraftVehicleWeaponComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(USeaCraftVehicleWeaponComponent, CurrentAmmo, COND_OwnerOnly);
 }
