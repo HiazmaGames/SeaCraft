@@ -26,13 +26,19 @@ bool USeaCraftVWeapon_Projectile::ServerFireProjectile_Validate(FVector Origin, 
 
 void USeaCraftVWeapon_Projectile::ServerFireProjectile_Implementation(FVector Origin, FVector_NetQuantizeNormal ShootDir)
 {
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+	if (MyPawn == NULL)
+	{
+		return;
+	}
+
 	FTransform SpawnTM(ShootDir.Rotation(), Origin);
 	ASeaCraftProjectile* Projectile = Cast<ASeaCraftProjectile>(UGameplayStatics::BeginSpawningActorFromClass(this, ProjectileConfig.ProjectileClass, SpawnTM));
 	if (Projectile)
 	{
-		// @TODO Connect component owner and projectile
-		// Projectile->Instigator = Instigator;
-		// Projectile->SetOwner(this);
+		Projectile->VehicleWeapon = this;
+		Projectile->Instigator = MyPawn;
+		Projectile->SetOwner(MyPawn);
 		Projectile->InitVelocity(ShootDir);
 
 		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTM);

@@ -23,6 +23,10 @@ class ASeaCraftProjectile : public AActor
 	UFUNCTION()
 	void OnImpact(const FHitResult& HitResult);
 
+	/** Weapon component that contains projectile weapon config */
+	UPROPERTY(ReplicatedUsing=OnRep_VWeapon)
+	class USeaCraftVehicleWeaponComponent* VehicleWeapon;
+
 protected:
 	/** Movement component */
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
@@ -52,6 +56,10 @@ protected:
 	/** [client] explosion happened */
 	UFUNCTION()
 	void OnRep_Exploded();
+
+	/** [client] vehicle weapon was set */
+	UFUNCTION()
+	void OnRep_VWeapon();
 
 	/** Trigger explosion */
 	void Explode(const FHitResult& Impact);

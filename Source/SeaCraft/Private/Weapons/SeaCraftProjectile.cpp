@@ -44,10 +44,13 @@ void ASeaCraftProjectile::PostInitializeComponents()
 	MovementComp->OnProjectileStop.AddDynamic(this, &ASeaCraftProjectile::OnImpact);
 	CollisionComp->MoveIgnoreActors.Add(Instigator);
 
-	USeaCraftVWeapon_Projectile* OwnerWeapon = Cast<USeaCraftVWeapon_Projectile>(GetOwner());
-	if (OwnerWeapon)
+	if (VehicleWeapon)
 	{
-		OwnerWeapon->ApplyWeaponConfig(WeaponConfig);
+		USeaCraftVWeapon_Projectile* OwnerWeapon = Cast<USeaCraftVWeapon_Projectile>(VehicleWeapon);
+		if (OwnerWeapon)
+		{
+			OwnerWeapon->ApplyWeaponConfig(WeaponConfig);
+		}
 	}
 
 	SetLifeSpan( WeaponConfig.ProjectileLife );
@@ -132,6 +135,8 @@ void ASeaCraftProjectile::OnRep_Exploded()
 
 	Explode(Impact);
 }
+
+void ASeaCraftProjectile::OnRep_VWeapon() {}
 
 void ASeaCraftProjectile::PostNetReceiveVelocity(const FVector& NewVelocity)
 {
