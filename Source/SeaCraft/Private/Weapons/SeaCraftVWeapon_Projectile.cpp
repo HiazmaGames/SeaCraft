@@ -12,10 +12,54 @@ USeaCraftVWeapon_Projectile::USeaCraftVWeapon_Projectile(const class FPostConstr
 
 void USeaCraftVWeapon_Projectile::FireWeapon()
 {
-	// @TODO Add projectile shoot dir and origin calculations
-	FVector ShootDir; //= GetAdjustedAim();
-	FVector Origin; //= GetMuzzleLocation();
-	
+	FVector ShootDir = GetAdjustedAim();
+	FVector Origin = GetMuzzleLocation();
+
+	// Trace from camera to check what's under crosshair
+	const float ProjectileAdjustRange = 10000.0f;
+	const FVector StartTrace = GetCameraDamageStartLocation(ShootDir);
+	const FVector EndTrace = StartTrace + ShootDir * ProjectileAdjustRange;
+	FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
+
+	// Adjust directions to hit that actor
+	if (Impact.bBlockingHit)
+	{
+		const FVector AdjustedDir = (Impact.ImpactPoint - Origin).SafeNormal();
+		bool bWeaponPenetration = false;
+
+		const float DirectionDot = FVector::DotProduct(AdjustedDir, ShootDir);
+		if (DirectionDot < 0.0f)
+		{
+			// Shooting backwards = weapon is penetrating
+			bWeaponPenetration = true;
+		}
+		else if (DirectionDot < 0.5f)
+		{
+			// Check for weapon penetration if angle difference is big enough
+			// raycast along weapon mesh to check if there's blocking hit
+
+			FVector MuzzleStartTrace = Origin - GetMuzzleDirection() * 150.0f;
+			FVector MuzzleEndTrace = Origin;
+			FHitResult MuzzleImpact = WeaponTrace(MuzzleStartTrace, MuzzleEndTrace);
+
+			if (MuzzleImpact.bBlockingHit)
+			{
+				bWeaponPenetration = true;
+			}
+		}
+
+		if (bWeaponPenetration)
+		{
+			// Spawn at crosshair position
+			Origin = Impact.ImpactPoint - ShootDir * 10.0f;
+		}
+		else
+		{
+			// Adjust direction to hit
+			ShootDir = AdjustedDir;
+		}
+	}
+
 	ServerFireProjectile(Origin, ShootDir);
 }
 

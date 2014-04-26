@@ -2,9 +2,22 @@
 
 #include "SeaCraft.h"
 
+FName ASeaCraftVehicle::VehicleMeshComponentName(TEXT("SeaCraftVehicleMesh"));
+
 ASeaCraftVehicle::ASeaCraftVehicle(const class FPostConstructInitializeProperties& PCIP)
 	: Super(PCIP)
 {
+	VehicleMesh = PCIP.CreateDefaultSubobject<USkeletalMeshComponent>(this, VehicleMeshComponentName);
+	static FName CollisionProfileName(TEXT("Vehicle"));
+	VehicleMesh->SetCollisionProfileName(CollisionProfileName);
+	VehicleMesh->BodyInstance.bSimulatePhysics = true;
+	VehicleMesh->BodyInstance.bNotifyRigidBodyCollision = true;
+	VehicleMesh->BodyInstance.bUseCCD = true;
+	VehicleMesh->bBlendPhysics = true;
+	VehicleMesh->bUseSingleBodyPhysics = true;
+	VehicleMesh->bGenerateOverlapEvents = true;
+	RootComponent = VehicleMesh;
+
 	bWantsToFire = false;
 }
 

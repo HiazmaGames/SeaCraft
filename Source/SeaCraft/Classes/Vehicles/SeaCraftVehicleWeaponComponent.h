@@ -29,6 +29,7 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float TimeBetweenShots;
 
+
 	//////////////////////////////////////////////////////////////////////////
 	// Input
 
@@ -38,11 +39,13 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 	/** [local + server] stop weapon fire */
 	virtual void StopFire();
 
+
 	//////////////////////////////////////////////////////////////////////////
 	// Control
 
 	/** Check if weapon can fire */
 	bool CanFire() const;
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// Ammo
@@ -52,6 +55,7 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 
 	/** Consume a bullet */
 	void UseAmmo();
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// Reading data
@@ -64,6 +68,9 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 
 	/** Check if weapon has infinite ammo (include owner's cheats) */
 	bool HasInfiniteAmmo() const;
+
+	/** Get last active turret socket */
+	FName GetLastActiveTurretBarrel() const;
 
 
 protected:
@@ -82,6 +89,10 @@ protected:
 	/** Current weapon state */
 	EVWeaponState::Type CurrentState;
 
+	/** Last active turret barrel */
+	UPROPERTY(Transient, Replicated)
+	int32 LastActiveTurretBarrel;
+
 	/** Is weapon fire active? */
 	uint32 bWantsToFire : 1;
 
@@ -95,6 +106,7 @@ protected:
 	UPROPERTY(Transient, Replicated)
 	int32 CurrentAmmo;
 
+
 	//////////////////////////////////////////////////////////////////////////
 	// Input - server side
 
@@ -103,6 +115,7 @@ protected:
 
 	UFUNCTION(reliable, server, WithValidation)
 	void ServerStopFire();
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// Weapon usage
@@ -122,5 +135,27 @@ protected:
 
 	/** Determine current weapon state */
 	void DetermineWeaponState();
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// Weapon usage helpers
+
+	/** Get the aim of the weapon, allowing for adjustments to be made by the weapon */
+	virtual FVector GetAdjustedAim() const;
+
+	/** Get the aim of the camera */
+	FVector GetCameraAim() const;
+
+	/** Get the originating location for camera damage */
+	FVector GetCameraDamageStartLocation(const FVector& AimDir) const;
+
+	/** Get the muzzle location of the weapon */
+	FVector GetMuzzleLocation() const;
+
+	/** Get direction of weapon's muzzle */
+	FVector GetMuzzleDirection() const;
+
+	/** Find hit */
+	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const;
 
 };

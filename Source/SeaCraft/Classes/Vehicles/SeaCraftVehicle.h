@@ -16,6 +16,18 @@ class ASeaCraftVehicle : public APawn
 	/** Configure weapons and setup initial variables */
 	virtual void PostInitializeComponents() OVERRIDE;
 
+
+	//////////////////////////////////////////////////////////////////////////
+	// Vehicle mesh
+
+	/** The main skeletal mesh associated with this Vehicle */
+	UPROPERTY(Category = Vehicle, VisibleDefaultsOnly, BlueprintReadOnly)
+	TSubobjectPtr<class USkeletalMeshComponent> VehicleMesh;
+
+	/** Name of the MeshComponent. Use this name if you want to prevent creation of the component (with PCIP.DoNotCreateDefaultSubobject). */
+	static FName VehicleMeshComponentName;
+
+
 	//////////////////////////////////////////////////////////////////////////
 	// Weapon control
 
