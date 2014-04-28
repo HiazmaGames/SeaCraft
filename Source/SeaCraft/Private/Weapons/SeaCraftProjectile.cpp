@@ -26,6 +26,7 @@ ASeaCraftProjectile::ASeaCraftProjectile(const class FPostConstructInitializePro
 	MovementComp->UpdatedComponent = CollisionComp;
 	MovementComp->InitialSpeed = 2000.0f;
 	MovementComp->MaxSpeed = 2000.0f;
+	MovementComp->bInitialVelocityInLocalSpace = false;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->ProjectileGravityScale = 0.f;
 

@@ -263,22 +263,10 @@ FVector USeaCraftVehicleWeaponComponent::GetCameraAim() const
 
 FVector USeaCraftVehicleWeaponComponent::GetAdjustedAim() const
 {
-	APawn* MyPawn = Cast<APawn>(GetOwner());
-	ASeaCraftPlayerController* const PlayerController = MyPawn ? Cast<ASeaCraftPlayerController>(MyPawn->Controller) : NULL;
 	FVector FinalAim = FVector::ZeroVector;
 
-	// If we have a player controller use it for the aim
-	if (PlayerController)
-	{
-		FVector CamLoc;
-		FRotator CamRot;
-		PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
-		FinalAim = CamRot.Vector();
-	}
-	else if (MyPawn)
-	{
-		FinalAim = MyPawn->GetBaseAimRotation().Vector();
-	}
+	// We're using socket rotation as targeting vector
+	FinalAim = GetMuzzleDirection();
 
 	return FinalAim;
 }
@@ -310,7 +298,7 @@ FVector USeaCraftVehicleWeaponComponent::GetMuzzleLocation() const
 		return MyVehicle->VehicleMesh->GetSocketLocation(GetLastActiveTurretBarrel());
 	}
 	
-	return FVector();
+	return FVector::ZeroVector;
 }
 
 FVector USeaCraftVehicleWeaponComponent::GetMuzzleDirection() const
@@ -321,7 +309,7 @@ FVector USeaCraftVehicleWeaponComponent::GetMuzzleDirection() const
 		return MyVehicle->VehicleMesh->GetSocketRotation(GetLastActiveTurretBarrel()).Vector();
 	}
 	
-	return FVector();
+	return FVector::UpVector;
 }
 
 FHitResult USeaCraftVehicleWeaponComponent::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const

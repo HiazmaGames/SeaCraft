@@ -17,7 +17,7 @@ void USeaCraftVWeapon_Projectile::FireWeapon()
 
 	// Trace from camera to check what's under crosshair
 	const float ProjectileAdjustRange = 10000.0f;
-	const FVector StartTrace = GetCameraDamageStartLocation(ShootDir);
+	const FVector StartTrace = GetMuzzleLocation(); // GetCameraDamageStartLocation(ShootDir);
 	const FVector EndTrace = StartTrace + ShootDir * ProjectileAdjustRange;
 	FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
 
