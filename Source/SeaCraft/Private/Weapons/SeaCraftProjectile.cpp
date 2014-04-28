@@ -18,7 +18,7 @@ ASeaCraftProjectile::ASeaCraftProjectile(const class FPostConstructInitializePro
 	RootComponent = CollisionComp;
 
 	ParticleComp = PCIP.CreateDefaultSubobject<UParticleSystemComponent>(this, TEXT("ParticleComp"));
-	ParticleComp->bAutoActivate = false;
+	ParticleComp->bAutoActivate = true;
 	ParticleComp->bAutoDestroy = false;
 	ParticleComp->AttachParent = RootComponent;
 
