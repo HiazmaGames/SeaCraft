@@ -20,7 +20,7 @@ namespace EVWeaponState
 /**
  * 
  */
-UCLASS(HeaderGroup=Component)
+UCLASS(Abstract, HeaderGroup = Component)
 class USeaCraftVehicleWeaponComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
@@ -28,6 +28,10 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 	/** Time between two consecutive shots */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float TimeBetweenShots;
+
+	/** Inifite ammo for reloads */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+	bool bInfiniteAmmo;
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -62,6 +66,12 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 
 	/** Get current weapon state */
 	EVWeaponState::Type GetCurrentState() const;
+
+	/** Get vehicle-unique weapon id */
+	FName GetWeaponID() const;
+
+	/** Get vehicle-unique group id */
+	FName GetGroupID() const;
 
 	/** Get current ammo amount (total) */
 	int32 GetCurrentAmmo() const;
@@ -120,6 +130,12 @@ protected:
 	//////////////////////////////////////////////////////////////////////////
 	// Weapon usage
 
+	/** Update weapon state */
+	void SetWeaponState(EVWeaponState::Type NewState);
+
+	/** Determine current weapon state */
+	void DetermineWeaponState();
+
 	/** [local] weapon specific fire implementation */
 	virtual void FireWeapon() PURE_VIRTUAL(USeaCraftVehicleWeaponComponent::FireWeapon, );
 
@@ -130,11 +146,11 @@ protected:
 	/** [local + server] handle weapon fire */
 	void HandleFiring();
 
-	/** Update weapon state */
-	void SetWeaponState(EVWeaponState::Type NewState);
+	/** [local + server] firing started */
+	virtual void OnBurstStarted();
 
-	/** Determine current weapon state */
-	void DetermineWeaponState();
+	/** [local + server] firing finished */
+	virtual void OnBurstFinished();
 
 
 	//////////////////////////////////////////////////////////////////////////

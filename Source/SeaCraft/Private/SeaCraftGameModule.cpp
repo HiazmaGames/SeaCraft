@@ -21,3 +21,4 @@ IMPLEMENT_PRIMARY_GAME_MODULE( FSeaCraftGameModule, SeaCraft, "SeaCraft" );
 
 DEFINE_LOG_CATEGORY(LogShipPhysics);
 DEFINE_LOG_CATEGORY(LogOcean);
+DEFINE_LOG_CATEGORY(LogWeapon);

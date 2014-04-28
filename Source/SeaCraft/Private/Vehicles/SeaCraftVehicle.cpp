@@ -25,7 +25,15 @@ void ASeaCraftVehicle::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// @TODO List components, find first group, and make it active
+	// Activate first weapon group
+	TArray<USeaCraftVehicleWeaponComponent*> Components;
+	this->GetComponents<USeaCraftVehicleWeaponComponent>(Components);
+
+	for (int i = 0; i < Components.Num(); i++)
+	{
+		SetWeaponGroup(Components[i]->GetGroupID());
+		break;
+	}
 }
 
 
@@ -34,7 +42,22 @@ void ASeaCraftVehicle::PostInitializeComponents()
 
 void ASeaCraftVehicle::SetWeaponGroup(FName WeaponGroup)
 {
+	// Stop current weapons before changing group
+	StopWeaponFire();
+
 	CurrentWeaponGroup = WeaponGroup;
+	CurrentWeapons.Empty();
+
+	TArray<USeaCraftVehicleWeaponComponent*> Components;
+	this->GetComponents<USeaCraftVehicleWeaponComponent>(Components);
+
+	for (int i = 0; i < Components.Num(); i++)
+	{
+		if (Components[i]->GetGroupID() == CurrentWeaponGroup)
+		{
+			CurrentWeapons.Add(Components[i]);
+		}
+	}
 }
 
 
@@ -47,7 +70,10 @@ void ASeaCraftVehicle::StartWeaponFire()
 	{
 		bWantsToFire = true;
 		
-		// @TODO Current weapons start fire
+		for (USeaCraftVehicleWeaponComponent* Weapon : CurrentWeapons)
+		{
+			Weapon->StartFire();
+		}
 	}
 }
 
@@ -57,7 +83,10 @@ void ASeaCraftVehicle::StopWeaponFire()
 	{
 		bWantsToFire = false;
 		
-		// @TODO Current weapons stop fire
+		for (USeaCraftVehicleWeaponComponent* Weapon : CurrentWeapons)
+		{
+			Weapon->StopFire();
+		}
 	}
 }
 
@@ -80,6 +109,8 @@ void ASeaCraftVehicle::SetupPlayerInputComponent(class UInputComponent* InputCom
 
 	InputComponent->BindAction("NextWeapon", IE_Pressed, this, &ASeaCraftVehicle::OnNextWeapon);
 	InputComponent->BindAction("PrevWeapon", IE_Pressed, this, &ASeaCraftVehicle::OnPrevWeapon);
+
+	UE_LOG(LogWeapon, Warning, TEXT("WEAPON: Input action binded"));
 }
 
 void ASeaCraftVehicle::OnStartFire()

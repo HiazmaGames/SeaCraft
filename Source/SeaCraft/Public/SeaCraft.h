@@ -12,6 +12,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShipPhysics, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogOcean, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogWeapon, Log, All);
 
 /** When you modify this, please note that this information can be saved with instances
 * also DefaultEngine.ini [/Script/Engine.CollisionProfile] should match with this list **/

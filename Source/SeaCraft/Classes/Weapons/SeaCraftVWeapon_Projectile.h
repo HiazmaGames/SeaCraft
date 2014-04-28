@@ -44,7 +44,7 @@ struct FProjectileWeaponData
 /**
  * A weapon that fires a visible projectile
  */
-UCLASS(Abstract, HeaderGroup = Component)
+UCLASS(HeaderGroup = Component, ClassGroup = Vehicle, editinlinenew, meta = (BlueprintSpawnableComponent))
 class USeaCraftVWeapon_Projectile : public USeaCraftVehicleWeaponComponent
 {
 	GENERATED_UCLASS_BODY()

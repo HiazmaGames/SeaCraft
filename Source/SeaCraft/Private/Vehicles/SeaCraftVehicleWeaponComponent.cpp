@@ -176,7 +176,19 @@ void USeaCraftVehicleWeaponComponent::ServerHandleFiring_Implementation()
 
 void USeaCraftVehicleWeaponComponent::SetWeaponState(EVWeaponState::Type NewState)
 {
+	const EVWeaponState::Type PrevState = CurrentState;
+
+	if (PrevState == EVWeaponState::Firing && NewState != EVWeaponState::Firing)
+	{
+		OnBurstFinished();
+	}
+
 	CurrentState = NewState;
+
+	if (PrevState != EVWeaponState::Firing && NewState == EVWeaponState::Firing)
+	{
+		OnBurstStarted();
+	}
 }
 
 void USeaCraftVehicleWeaponComponent::DetermineWeaponState()
@@ -189,6 +201,39 @@ void USeaCraftVehicleWeaponComponent::DetermineWeaponState()
 	}
 
 	SetWeaponState(NewState);
+}
+
+void USeaCraftVehicleWeaponComponent::OnBurstStarted()
+{
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+	if (MyPawn == NULL)
+	{
+		return;
+	}
+
+	// Start firing, can be delayed to satisfy TimeBetweenShots
+	const float GameTime = GetWorld()->GetTimeSeconds();
+	if (LastFireTime > 0 && TimeBetweenShots > 0.0f &&
+		LastFireTime + TimeBetweenShots > GameTime)
+	{
+		MyPawn->GetWorldTimerManager().SetTimer(this, &USeaCraftVehicleWeaponComponent::HandleFiring, LastFireTime + TimeBetweenShots - GameTime, false);
+	}
+	else
+	{
+		HandleFiring();
+	}
+}
+
+void USeaCraftVehicleWeaponComponent::OnBurstFinished()
+{
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+	if (MyPawn == NULL)
+	{
+		return;
+	}
+
+	MyPawn->GetWorldTimerManager().ClearTimer(this, &USeaCraftVehicleWeaponComponent::HandleFiring);
+	bRefiring = false;
 }
 
 
@@ -303,6 +348,16 @@ EVWeaponState::Type USeaCraftVehicleWeaponComponent::GetCurrentState() const
 	return CurrentState;
 }
 
+FName USeaCraftVehicleWeaponComponent::GetWeaponID() const
+{
+	return WeaponID;
+}
+
+FName USeaCraftVehicleWeaponComponent::GetGroupID() const
+{
+	return GroupID;
+}
+
 int32 USeaCraftVehicleWeaponComponent::GetCurrentAmmo() const
 {
 	return CurrentAmmo;
@@ -310,7 +365,7 @@ int32 USeaCraftVehicleWeaponComponent::GetCurrentAmmo() const
 
 bool USeaCraftVehicleWeaponComponent::HasInfiniteAmmo() const
 {
-	return false;
+	return bInfiniteAmmo;
 }
 
 FName USeaCraftVehicleWeaponComponent::GetLastActiveTurretBarrel() const

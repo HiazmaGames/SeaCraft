@@ -71,24 +71,11 @@ class ASeaCraftVehicle : public APawn
 	void OnPrevWeapon();
 
 
-	//////////////////////////////////////////////////////////////////////////
-	// Weapon usage helpers
-
-	/** Get the aim of the weapon, allowing for adjustments to be made by the weapon */
-	//virtual FVector GetAdjustedAim() const;
-
-	/** Get the aim of the camera */
-	//FVector GetCameraAim() const;
-
-	/** Get the originating location for camera damage */
-	//FVector GetCameraDamageStartLocation(const FVector& AimDir) const;
-
-	/** Find hit */
-	//FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const;
-
-
 protected:
 	/** Current firing state */
 	uint8 bWantsToFire : 1;
-	
+
+	/** Cached current weapon group */
+	TArray<USeaCraftVehicleWeaponComponent*> CurrentWeapons;
+
 };
