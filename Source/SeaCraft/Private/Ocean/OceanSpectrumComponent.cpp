@@ -62,12 +62,30 @@ UOceanSpectrumComponent::UOceanSpectrumComponent(const class FPostConstructIniti
 
 	// Height map H(0)
 	int32 height_map_size = (OceanConfig.DispMapDimension + 4) * (OceanConfig.DispMapDimension + 1);
-	FVector2D* h0_data = new FVector2D[height_map_size * sizeof(FVector2D)];
-	float* omega_data = new float[height_map_size * sizeof(float)];
+	TResourceArray<FVector2D> h0_data;
+	h0_data.Init(FVector2D::ZeroVector, height_map_size);
+	TResourceArray<float> omega_data;
+	omega_data.Init(0.0f, height_map_size);
 	InitHeightMap(OceanConfig, h0_data, omega_data);
+	
+	int hmap_dim = OceanConfig.DispMapDimension;
+	int input_full_size = (hmap_dim + 4) * (hmap_dim + 1);
+	// This value should be (hmap_dim / 2 + 1) * hmap_dim, but we use full sized buffer here for simplicity.
+	int input_half_size = hmap_dim * hmap_dim;
+	int output_size = hmap_dim * hmap_dim;
+
+	// For filling the buffer with zeroes
+	TResourceArray<float> zero_data;
+	zero_data.Init(0.0f, 6 * output_size);
+
+	// RW buffer allocations
+	// H0
+	uint32 float2_stride = 2 * sizeof(float);
+	CreateBufferAndUAV(&h0_data, input_full_size * float2_stride, float2_stride, m_pBuffer_Float2_H0, m_pUAV_H0, m_pSRV_H0);
+
 }
 
-void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, FVector2D* out_h0, float* out_omega)
+void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<FVector2D>& out_h0, TResourceArray<float>& out_omega)
 {
 	int32 i, j;
 	FVector2D K, Kn;
@@ -108,6 +126,18 @@ void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, FVector2D* out_h
 		}
 	}
 }
+
+void UOceanSpectrumComponent::CreateBufferAndUAV(FResourceArrayInterface* Data, uint32 byte_width, uint32 byte_stride,
+	FStructuredBufferRHIRef& ppBuffer, FUnorderedAccessViewRHIRef& ppUAV, FShaderResourceViewRHIRef& ppSRV)
+{
+	ppBuffer = RHICreateStructuredBuffer(byte_stride, Data->GetResourceDataSize(), Data, (BUF_UnorderedAccess | BUF_ShaderResource));
+	ppUAV = RHICreateUnorderedAccessView(ppBuffer, false, false);
+	ppSRV = RHICreateShaderResourceView(ppBuffer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Component tick and update
 
 void UOceanSpectrumComponent::SendRenderTransform_Concurrent()
 {
@@ -155,6 +185,10 @@ void UOceanSpectrumComponent::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	UpdateContent();
 }
 #endif // WITH_EDITOR
+
+
+//////////////////////////////////////////////////////////////////////////
+// Spectrum RT rendering
 
 void UpdateOceanSpectrumContent_RenderThread(FTextureRenderTargetResource* TextureRenderTarget, FIntRect ViewRect, const FResolveParams& ResolveParams)
 {
