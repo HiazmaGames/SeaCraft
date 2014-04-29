@@ -2,7 +2,6 @@
 
 #include "SeaCraft.h"
 #include "UniformBuffer.h"
-#include "ShaderParameters.h"
 
 #define HALF_SQRT_2	0.7071068f
 #define GRAV_ACCEL	981.0f	// The acceleration of gravity, cm/s^2
@@ -50,6 +49,7 @@ float Phillips(FVector2D K, FVector2D W, float v, float a, float dir_depend)
 	return phillips * expf(-Ksqr * w * w);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 // Spectrum component
 
@@ -76,12 +76,26 @@ UOceanSpectrumComponent::UOceanSpectrumComponent(const class FPostConstructIniti
 
 	// For filling the buffer with zeroes
 	TResourceArray<float> zero_data;
-	zero_data.Init(0.0f, 6 * output_size);
+	zero_data.Init(0.0f, 3 * output_size * 2);
 
 	// RW buffer allocations
 	// H0
 	uint32 float2_stride = 2 * sizeof(float);
 	CreateBufferAndUAV(&h0_data, input_full_size * float2_stride, float2_stride, m_pBuffer_Float2_H0, m_pUAV_H0, m_pSRV_H0);
+
+	// Notice: The following 3 buffers should be half sized buffer because of conjugate symmetric input. But
+	// we use full sized buffers due to the CS4.0 restriction.
+
+	// Put H(t), Dx(t) and Dy(t) into one buffer because CS4.0 allows only 1 UAV at a time
+	//CreateBufferAndUAV(&zero_data, 3 * input_half_size * float2_stride, float2_stride, m_pBuffer_Float2_Ht, m_pUAV_Ht, m_pSRV_Ht);
+
+	// omega
+	//CreateBufferAndUAV(&omega_data, input_full_size * sizeof(float), sizeof(float), m_pBuffer_Float_Omega, m_pUAV_Omega, m_pSRV_Omega);
+
+	// Notice: The following 3 should be real number data. But here we use the complex numbers and C2C FFT
+	// due to the CS4.0 restriction.
+	// Put Dz, Dx and Dy into one buffer because CS4.0 allows only 1 UAV at a time
+	//CreateBufferAndUAV(&zero_data, 3 * output_size * float2_stride, float2_stride, m_pBuffer_Float_Dxyz, m_pUAV_Dxyz, m_pSRV_Dxyz);
 
 }
 
@@ -214,7 +228,7 @@ void UOceanSpectrumComponent::UpdateOceanSpectrumContents(class UOceanSpectrumCo
 			FTextureRenderTargetResource*, TextureRenderTarget, TextureRenderTarget,
 			FIntRect, ViewRect, ViewRect,
 			{
-			UpdateOceanSpectrumContent_RenderThread(TextureRenderTarget, ViewRect, FResolveParams());
+				UpdateOceanSpectrumContent_RenderThread(TextureRenderTarget, ViewRect, FResolveParams());
 			});
 	}
 }
