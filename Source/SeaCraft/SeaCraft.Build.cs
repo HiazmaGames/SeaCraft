@@ -6,7 +6,17 @@ public class SeaCraft : ModuleRules
 {
 	public SeaCraft(TargetInfo Target)
     {
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "OnlineSubsystem", "OnlineSubsystemUtils" });
+        PublicDependencyModuleNames.AddRange(
+            new string[] {
+                "Core",
+                "CoreUObject",
+                "Engine",
+                "RenderCore",
+                "RHI",
+                "InputCore",
+                "OnlineSubsystem",
+                "OnlineSubsystemUtils" 
+            });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
