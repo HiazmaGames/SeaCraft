@@ -78,7 +78,7 @@ void UOceanSpectrumComponent::UpdateOceanSpectrumContents(class UOceanSpectrumCo
 	{
 		FTextureRenderTargetResource* TextureRenderTarget = NormalsTarget->GameThread_GetRenderTargetResource();
 
-		FIntPoint CaptureSize(NormalsTarget->GetSurfaceWidth(), NormalsTarget->GetSurfaceHeight());
+		FIntPoint CaptureSize(TextureRenderTarget->GetSizeX(), TextureRenderTarget->GetSizeY());
 		FIntRect ViewRect = FIntRect(0, 0, CaptureSize.X, CaptureSize.Y);
 
 		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
