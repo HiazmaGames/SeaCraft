@@ -54,52 +54,38 @@ float Phillips(FVector2D K, FVector2D W, float v, float a, float dir_depend)
 // Spectrum component
 
 UOceanSpectrumComponent::UOceanSpectrumComponent(const class FPostConstructInitializeProperties& PCIP)
-	: Super(PCIP)
+: Super(PCIP)
 {
 	bAutoActivate = true;
 	PrimaryComponentTick.bCanEverTick = true;
 	//PrimaryComponentTick.TickGroup = TG_DuringPhysics;
 
+	if (NormalsTarget)
+	{
+		NormalsTarget->bForceLinearGamma = true;
+	}
+
+	if (HeightTarget)
+	{
+		HeightTarget->bForceLinearGamma = true;
+	}
+
+	FFloat16Color BlackColor;
+	BlackColor.R = 0;
+	BlackColor.G = 0;
+	BlackColor.B = 0;
+	BlackColor.A = 0;
+
 	// Height map H(0)
-	int32 height_map_size = (OceanConfig.DispMapDimension + 4) * (OceanConfig.DispMapDimension + 1);
-	TResourceArray<FVector2D> h0_data;
-	h0_data.Init(FVector2D::ZeroVector, height_map_size);
-	TResourceArray<float> omega_data;
+	int32 height_map_size = FMath::Square(OceanConfig.DispMapDimension);
+	h0_data.Empty();
+	h0_data.Init(BlackColor, height_map_size);
+	omega_data.Empty();
 	omega_data.Init(0.0f, height_map_size);
 	InitHeightMap(OceanConfig, h0_data, omega_data);
-	
-	int hmap_dim = OceanConfig.DispMapDimension;
-	int input_full_size = (hmap_dim + 4) * (hmap_dim + 1);
-	// This value should be (hmap_dim / 2 + 1) * hmap_dim, but we use full sized buffer here for simplicity.
-	int input_half_size = hmap_dim * hmap_dim;
-	int output_size = hmap_dim * hmap_dim;
-
-	// For filling the buffer with zeroes
-	TResourceArray<float> zero_data;
-	zero_data.Init(0.0f, 3 * output_size * 2);
-
-	// RW buffer allocations
-	// H0
-	uint32 float2_stride = 2 * sizeof(float);
-	CreateBufferAndUAV(&h0_data, input_full_size * float2_stride, float2_stride, m_pBuffer_Float2_H0, m_pUAV_H0, m_pSRV_H0);
-
-	// Notice: The following 3 buffers should be half sized buffer because of conjugate symmetric input. But
-	// we use full sized buffers due to the CS4.0 restriction.
-
-	// Put H(t), Dx(t) and Dy(t) into one buffer because CS4.0 allows only 1 UAV at a time
-	//CreateBufferAndUAV(&zero_data, 3 * input_half_size * float2_stride, float2_stride, m_pBuffer_Float2_Ht, m_pUAV_Ht, m_pSRV_Ht);
-
-	// omega
-	//CreateBufferAndUAV(&omega_data, input_full_size * sizeof(float), sizeof(float), m_pBuffer_Float_Omega, m_pUAV_Omega, m_pSRV_Omega);
-
-	// Notice: The following 3 should be real number data. But here we use the complex numbers and C2C FFT
-	// due to the CS4.0 restriction.
-	// Put Dz, Dx and Dy into one buffer because CS4.0 allows only 1 UAV at a time
-	//CreateBufferAndUAV(&zero_data, 3 * output_size * float2_stride, float2_stride, m_pBuffer_Float_Dxyz, m_pUAV_Dxyz, m_pSRV_Dxyz);
-
 }
 
-void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<FVector2D>& out_h0, TResourceArray<float>& out_omega)
+void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<FFloat16Color>& out_h0, TResourceArray<float>& out_omega)
 {
 	int32 i, j;
 	FVector2D K, Kn;
@@ -114,19 +100,21 @@ void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<F
 	int height_map_dim = Params.DispMapDimension;
 	float patch_length = Params.PatchLength;
 
-	for (i = 0; i <= height_map_dim; i++)
+	for (i = 0; i < height_map_dim; i++)
 	{
 		// K is wave-vector, range [-|DX/W, |DX/W], [-|DY/H, |DY/H]
 		K.Y = (-height_map_dim / 2.0f + i) * (2 * PI / patch_length);
 
-		for (j = 0; j <= height_map_dim; j++)
+		for (j = 0; j < height_map_dim; j++)
 		{
 			K.X = (-height_map_dim / 2.0f + j) * (2 * PI / patch_length);
 
 			float phil = (K.X == 0 && K.Y == 0) ? 0 : sqrtf(Phillips(K, wind_dir, v, a, dir_depend));
 
-			out_h0[i * (height_map_dim + 4) + j].X = float(phil * Gauss() * HALF_SQRT_2);
-			out_h0[i * (height_map_dim + 4) + j].Y = float(phil * Gauss() * HALF_SQRT_2);
+			out_h0[i * height_map_dim + j].R = FFloat16(phil * Gauss() * HALF_SQRT_2);
+			out_h0[i * height_map_dim + j].G = FFloat16(phil * Gauss() * HALF_SQRT_2);
+
+			//UE_LOG(LogOcean, Warning, TEXT("Update spectrum here %d"), i * height_map_dim + j);
 
 			// The angular frequency is following the dispersion relation:
 			//            out_omega^2 = g*k
@@ -136,7 +124,7 @@ void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<F
 			// Gerstner wave shows that a point on a simple sinusoid wave is doing a uniform circular
 			// motion with the center (x0, y0, z0), radius A, and the circular plane is parallel to
 			// vector K.
-			out_omega[i * (height_map_dim + 4) + j] = sqrtf(GRAV_ACCEL * sqrtf(K.X * K.X + K.Y * K.Y));
+			out_omega[i * height_map_dim + j] = sqrtf(GRAV_ACCEL * sqrtf(K.X * K.X + K.Y * K.Y));
 		}
 	}
 }
@@ -223,12 +211,19 @@ void UOceanSpectrumComponent::UpdateOceanSpectrumContents(class UOceanSpectrumCo
 		FIntPoint CaptureSize(TextureRenderTarget->GetSizeX(), TextureRenderTarget->GetSizeY());
 		FIntRect ViewRect = FIntRect(0, 0, CaptureSize.X, CaptureSize.Y);
 
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
 			SpectrumRenderCommand,
 			FTextureRenderTargetResource*, TextureRenderTarget, TextureRenderTarget,
 			FIntRect, ViewRect, ViewRect,
+			FResourceArrayInterface*, Data, &h0_data,
 			{
-				UpdateOceanSpectrumContent_RenderThread(TextureRenderTarget, ViewRect, FResolveParams());
+				uint32 stride = 0;
+				void* MipData = GDynamicRHI->RHILockTexture2D(TextureRenderTarget->GetRenderTargetTexture(), 0, RLM_WriteOnly, stride, false);
+				if (MipData)
+				{
+					FMemory::Memcpy(MipData, Data->GetResourceData(), Data->GetResourceDataSize());
+					GDynamicRHI->RHIUnlockTexture2D(TextureRenderTarget->GetRenderTargetTexture(), 0, false);
+				}
 			});
 	}
 }
