@@ -70,6 +70,13 @@ UOceanSpectrumComponent::UOceanSpectrumComponent(const class FPostConstructIniti
 		HeightTarget->bForceLinearGamma = true;
 	}
 
+	// Cache shader immutable parameters
+	g_ActualDim = OceanConfig.DispMapDimension;
+	g_InWidth = g_ActualDim + 4;
+	g_OutWidth = g_ActualDim;
+	g_OutHeight = g_ActualDim;
+
+	// Black color to fill the array
 	FFloat16Color BlackColor;
 	BlackColor.R = 0;
 	BlackColor.G = 0;
@@ -77,12 +84,32 @@ UOceanSpectrumComponent::UOceanSpectrumComponent(const class FPostConstructIniti
 	BlackColor.A = 0;
 
 	// Height map H(0)
-	int32 height_map_size = FMath::Square(OceanConfig.DispMapDimension);
+	//int32 height_map_size = FMath::Square(OceanConfig.DispMapDimension);
+	int32 height_map_size = (OceanConfig.DispMapDimension + 4) * (OceanConfig.DispMapDimension + 1);
+
 	h0_data.Empty();
 	h0_data.Init(BlackColor, height_map_size);
+
 	omega_data.Empty();
 	omega_data.Init(0.0f, height_map_size);
+
 	InitHeightMap(OceanConfig, h0_data, omega_data);
+
+	// This value should be (hmap_dim / 2 + 1) * hmap_dim, but we use full sized buffer here for simplicity
+	int32 input_half_size = FMath::Square(OceanConfig.DispMapDimension);
+
+	// H(t), Dx(t) and Dy(t)
+	Ht_data.Empty();
+	Ht_data.Init(BlackColor, input_half_size);
+
+	Ht_Dx.Empty();
+	Ht_Dx.Init(BlackColor, input_half_size);
+
+	Ht_Dy.Empty();
+	Ht_Dy.Init(BlackColor, input_half_size);
+
+	// Update maps for the first time
+	UpdateDisplacementMap(0);
 }
 
 void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<FFloat16Color>& out_h0, TResourceArray<float>& out_omega)
@@ -100,19 +127,19 @@ void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<F
 	int height_map_dim = Params.DispMapDimension;
 	float patch_length = Params.PatchLength;
 
-	for (i = 0; i < height_map_dim; i++)
+	for (i = 0; i <= height_map_dim; i++)
 	{
 		// K is wave-vector, range [-|DX/W, |DX/W], [-|DY/H, |DY/H]
 		K.Y = (-height_map_dim / 2.0f + i) * (2 * PI / patch_length);
 
-		for (j = 0; j < height_map_dim; j++)
+		for (j = 0; j <= height_map_dim; j++)
 		{
 			K.X = (-height_map_dim / 2.0f + j) * (2 * PI / patch_length);
 
 			float phil = (K.X == 0 && K.Y == 0) ? 0 : sqrtf(Phillips(K, wind_dir, v, a, dir_depend));
 
-			out_h0[i * height_map_dim + j].R = FFloat16(phil * Gauss() * HALF_SQRT_2);
-			out_h0[i * height_map_dim + j].G = FFloat16(phil * Gauss() * HALF_SQRT_2);
+			out_h0[i * (height_map_dim + 4) + j].R = FFloat16(phil * Gauss() * HALF_SQRT_2);
+			out_h0[i * (height_map_dim + 4) + j].G = FFloat16(phil * Gauss() * HALF_SQRT_2);
 
 			//UE_LOG(LogOcean, Warning, TEXT("Update spectrum here %d"), i * height_map_dim + j);
 
@@ -124,7 +151,7 @@ void UOceanSpectrumComponent::InitHeightMap(FOceanData& Params, TResourceArray<F
 			// Gerstner wave shows that a point on a simple sinusoid wave is doing a uniform circular
 			// motion with the center (x0, y0, z0), radius A, and the circular plane is parallel to
 			// vector K.
-			out_omega[i * height_map_dim + j] = sqrtf(GRAV_ACCEL * sqrtf(K.X * K.X + K.Y * K.Y));
+			out_omega[i * (height_map_dim + 4) + j] = sqrtf(GRAV_ACCEL * sqrtf(K.X * K.X + K.Y * K.Y));
 		}
 	}
 }
@@ -139,7 +166,7 @@ void UOceanSpectrumComponent::CreateBufferAndUAV(FResourceArrayInterface* Data, 
 
 
 //////////////////////////////////////////////////////////////////////////
-// Component tick and update
+// Displacement map update
 
 void UOceanSpectrumComponent::SendRenderTransform_Concurrent()
 {
@@ -152,9 +179,77 @@ void UOceanSpectrumComponent::TickComponent(float DeltaTime, enum ELevelTick Tic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// @TODO Update spectrum, etc.
+	//UpdateDisplacementMap(GetWorld()->GetTimeSeconds());
+
+	// Finaly update render targets content
 	UpdateOceanSpectrumContents(this);
 }
+
+void UOceanSpectrumComponent::UpdateDisplacementMap(float WorldTime)
+{
+	// Update per frame data
+	g_Time = WorldTime * OceanConfig.TimeScale;
+	g_ChoppyScale = OceanConfig.ChoppyScale;
+
+	// H(0) -> H(t), D(x,t), D(y,t)
+	for (int i = 0; i < g_ActualDim; i++)
+	{
+		for (int j = 0; j < g_ActualDim; j++)
+		{
+			// Can be run parrallel in threads
+			UpdateSpectrum(FIntVector(i, j, 0));
+		}
+	}
+}
+
+void UOceanSpectrumComponent::UpdateSpectrum(FIntVector DTid)
+{
+	int in_index = DTid.Y * g_InWidth + DTid.X;
+	int in_mindex = (g_ActualDim - DTid.Y) * g_InWidth + (g_ActualDim - DTid.X);
+	int out_index = DTid.Y * g_OutWidth + DTid.X;
+
+	// H(0) -> H(t)
+	FVector2D h0_k = FVector2D(h0_data[in_index].R, h0_data[in_index].G);
+	FVector2D h0_mk = FVector2D(h0_data[in_mindex].R, h0_data[in_mindex].G);
+	float sin_v, cos_v;
+	sin_v = FMath::Sin(omega_data[in_index] * g_Time);
+	cos_v = FMath::Cos(omega_data[in_index] * g_Time);
+
+	FVector2D ht;
+	ht.X = (h0_k.X + h0_mk.X) * cos_v - (h0_k.Y + h0_mk.Y) * sin_v;
+	ht.Y = (h0_k.X - h0_mk.X) * sin_v + (h0_k.Y - h0_mk.Y) * cos_v;
+
+	// H(t) -> Dx(t), Dy(t)
+	float kx = DTid.X - g_ActualDim * 0.5f;
+	float ky = DTid.X - g_ActualDim * 0.5f;
+	float sqr_k = kx * kx + ky * ky;
+	float rsqr_k = 0;
+	if (sqr_k > 1e-12f)
+	{
+		rsqr_k = 1 / sqrt(sqr_k);
+	}
+	
+	kx *= rsqr_k;
+	ky *= rsqr_k;
+	FVector2D dt_x = FVector2D(ht.Y * kx, -ht.X * kx);
+	FVector2D dt_y = FVector2D(ht.Y * ky, -ht.X * ky);
+
+	if ((DTid.X < g_OutWidth) && (DTid.Y < g_OutHeight))
+	{
+		Ht_data[out_index].R = FFloat16(ht.X);
+		Ht_data[out_index].G = FFloat16(ht.Y);
+
+		Ht_Dx[out_index].R = FFloat16(dt_x.X);
+		Ht_Dx[out_index].G = FFloat16(dt_x.Y);
+
+		Ht_Dy[out_index].R = FFloat16(dt_y.X);
+		Ht_Dy[out_index].G = FFloat16(dt_y.Y);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Render targets update
 
 static TArray<UOceanSpectrumComponent*> OceanSpectrumsToUpdate;
 
@@ -221,10 +316,9 @@ void UOceanSpectrumComponent::UpdateOceanSpectrumContents(class UOceanSpectrumCo
 				void* MipData = GDynamicRHI->RHILockTexture2D(TextureRenderTarget->GetRenderTargetTexture(), 0, RLM_WriteOnly, stride, false);
 				if (MipData)
 				{
-					FMemory::Memcpy(MipData, Data->GetResourceData(), Data->GetResourceDataSize());
+					//FMemory::Memcpy(MipData, Data->GetResourceData(), Data->GetResourceDataSize());
 					GDynamicRHI->RHIUnlockTexture2D(TextureRenderTarget->GetRenderTargetTexture(), 0, false);
 				}
 			});
 	}
 }
-

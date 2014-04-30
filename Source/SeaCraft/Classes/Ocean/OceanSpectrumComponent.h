@@ -102,20 +102,44 @@ public:
 #endif // WITH_EDITOR
 	// End UObject Interface
 
+
+	//////////////////////////////////////////////////////////////////////////
+	// Displacement map update
+
+	void UpdateDisplacementMap(float WorldTime);
+
+	/** H(0) -> H(t), D(x,t), D(y,t) */
+	void UpdateSpectrum(FIntVector DTid);
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// Render targets update
+
 	/** Render the ocean spectrum to the texture */
 	void UpdateContent();
 
 	/*static*/ void UpdateDeferredSpectrums(/*FSceneInterface* Scene*/);
 
-	/**
-	* Updates the contents of the given ocean spectrum by processing FFT calculations on spectrum.
-	* This must be called on the game thread.
-	*/
+	/** Updates the contents of the given ocean spectrum by processing FFT calculations on spectrum. 
+		This must be called on the game thread. */
 	void UpdateOceanSpectrumContents(class UOceanSpectrumComponent* OceanSpectrumComponent);
 
 protected:
 	/** CPU arrays to keep data */
 	TResourceArray<FFloat16Color> h0_data;
 	TResourceArray<float> omega_data;
+
+	/** Values from shaders to make CPU post easier */
+	TResourceArray<FFloat16Color> Ht_data;
+	TResourceArray<FFloat16Color> Ht_Dx;
+	TResourceArray<FFloat16Color> Ht_Dy;
+
+	int32 g_ActualDim;
+	int32 g_InWidth;
+	int32 g_OutWidth;
+	int32 g_OutHeight;
+
+	float g_Time;
+	float g_ChoppyScale;
 
 };
