@@ -11,14 +11,12 @@ public class SeaCraft : ModuleRules
                 "Core",
                 "CoreUObject",
                 "Engine",
-                "RenderCore",
-                "RHI",
                 "InputCore",
                 "OnlineSubsystem",
                 "OnlineSubsystemUtils" 
             });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+        PrivateDependencyModuleNames.AddRange(new string[] { "VaOceanPlugin" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.Add("Slate");
