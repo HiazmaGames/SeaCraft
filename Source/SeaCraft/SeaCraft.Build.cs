@@ -16,8 +16,6 @@ public class SeaCraft : ModuleRules
                 "OnlineSubsystemUtils" 
             });
 
-        PrivateDependencyModuleNames.AddRange(new string[] { "VaOceanPlugin" });
-
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.Add("Slate");
 		
