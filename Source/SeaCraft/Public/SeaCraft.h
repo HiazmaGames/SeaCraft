@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Engine.h"
+#include "EngineUserInterfaceClasses.h"
 #include "EngineKismetLibraryClasses.h"
 #include "ParticleDefinitions.h"
 #include "Net/UnrealNetwork.h"

@@ -8,7 +8,29 @@ ASeaCraftPlayerController::ASeaCraftPlayerController(const class FPostConstructI
 	bAllowGameActions = true;
 }
 
+void ASeaCraftPlayerController::InitInputSystem()
+{
+	Super::InitInputSystem();
+
+	if (PlayerInput != NULL)
+	{
+		USeaCraftUserSettings *UserSettings = CastChecked<USeaCraftUserSettings>(GEngine->GetGameUserSettings());
+		UserSettings->ApplySettings();
+	}
+}
+
+void ASeaCraftPlayerController::SetGraphicsQuality(int32 InGraphicsQuality)
+{
+	if (PlayerInput != NULL)
+	{
+		USeaCraftUserSettings *UserSettings = CastChecked<USeaCraftUserSettings>(GEngine->GetGameUserSettings());
+		UserSettings->SetGraphicsQuality(InGraphicsQuality);
+		UserSettings->ApplySettings();
+	}
+}
+
 bool ASeaCraftPlayerController::IsGameInputAllowed() const
 {
 	return bAllowGameActions && !bCinematicMode;
 }
+
