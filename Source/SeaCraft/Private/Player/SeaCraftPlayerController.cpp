@@ -29,6 +29,11 @@ void ASeaCraftPlayerController::SetGraphicsQuality(int32 InGraphicsQuality)
 	}
 }
 
+void ASeaCraftPlayerController::Quit()
+{
+	ConsoleCommand("quit");
+}
+
 bool ASeaCraftPlayerController::IsGameInputAllowed() const
 {
 	return bAllowGameActions && !bCinematicMode;

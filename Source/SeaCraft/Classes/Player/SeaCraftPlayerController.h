@@ -22,6 +22,10 @@ class ASeaCraftPlayerController : public APlayerController
 	UFUNCTION(exec)
 	void SetGraphicsQuality(int32 InGraphicsQuality);
 
+	/** Fast game shutdown */
+	UFUNCTION(exec)
+	void Quit();
+
 protected:
 	/** If set, gameplay related actions (movement, weapon usage, etc) are allowed */
 	uint8 bAllowGameActions : 1;
