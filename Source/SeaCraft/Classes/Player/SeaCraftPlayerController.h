@@ -19,7 +19,7 @@ class ASeaCraftPlayerController : public APlayerController
 	bool IsGameInputAllowed() const;
 
 	/** Local function to change system settings and apply them */
-	UFUNCTION(exec)
+	UFUNCTION(exec, BlueprintCallable, Category = "Settings")
 	void SetGraphicsQuality(int32 InGraphicsQuality);
 
 	/** Fast game shutdown */
