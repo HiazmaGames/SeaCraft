@@ -17,7 +17,7 @@ public class SeaCraft : ModuleRules
             });
 
 		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.Add("Slate");
+        PublicDependencyModuleNames.Add("VaOceanPlugin");
 		
 		PrivateDependencyModuleNames.Add("OnlineSubsystem");
 		if ((Target.Platform == UnrealTargetPlatform.Win32) || (Target.Platform == UnrealTargetPlatform.Win64))
