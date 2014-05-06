@@ -5,6 +5,7 @@
 AOceanStateActor::AOceanStateActor(const class FPostConstructInitializeProperties& PCIP)
 	: Super(PCIP)
 {
+#if WITH_EDITORONLY_DATA
 	// Structure to hold one-time initialization
 	struct FConstructorStatics
 	{
@@ -27,6 +28,7 @@ AOceanStateActor::AOceanStateActor(const class FPostConstructInitializePropertie
 		}
 	};
 	static FConstructorStatics ConstructorStatics;
+#endif // WITH_EDITORONLY_DATA
 
 	// We need a scene component to attach Icon sprite
 	TSubobjectPtr<USceneComponent> SceneComponent = PCIP.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComp"));
@@ -67,7 +69,7 @@ void AOceanStateActor::PostInitializeComponents()
 	// Load raw data with first function call
 	if (OceanHeightMap)
 	{
-		bRawDataReady = OceanHeightMap->Source.GetMipData(HeightMapRawData, 0);
+		bRawDataReady = false;// OceanHeightMap->Source.GetMipData(HeightMapRawData, 0);
 		UE_LOG(LogOcean, Log, TEXT("Ocean heighmap load status: %d"), (int)bRawDataReady);
 	}
 	else
@@ -85,12 +87,12 @@ float AOceanStateActor::GetOceanLevelAtLocation(FVector& Location) const
 		return 0.0f;
 	}
 
-	check(OceanHeightMap->Source.IsValid());
+	// check(OceanHeightMap->Source.IsValid());
 
 	// Check we have a raw data loaded
 	if (!bRawDataReady)
 	{
-		UE_LOG(LogOcean, Warning, TEXT("Can't load raw data of ocean heightmap!"));
+		// UE_LOG(LogOcean, Warning, TEXT("Can't load raw data of ocean heightmap!"));
 		return 0.0f;
 	}
 
@@ -123,13 +125,13 @@ FLinearColor AOceanStateActor::GetOceanSurfaceNormal(FVector& Location) const
 		return FLinearColor();
 	}
 
-	check(OceanHeightMap->Source.IsValid());
+	//check(OceanHeightMap->Source.IsValid());
 
 	// Check we have a raw data loaded
 	if (!bRawDataReady)
 	{
-		UE_LOG(LogOcean, Warning, TEXT("Can't load raw data of ocean heightmap!"));
-		return FLinearColor();
+		// UE_LOG(LogOcean, Warning, TEXT("Can't load raw data of ocean heightmap!"));
+		return FLinearColor::Black;
 	}
 
 	//
@@ -168,12 +170,14 @@ FColor AOceanStateActor::GetHeighMapPixelColor(float U, float V) const
 	// Check we have a raw data loaded
 	if (!bRawDataReady)
 	{
-		UE_LOG(LogOcean, Warning, TEXT("Ocean heightmap raw data is not loaded! Pixel is empty."));
-		return FColor(0,0,0,0);
+		//UE_LOG(LogOcean, Warning, TEXT("Ocean heightmap raw data is not loaded! Pixel is empty."));
+		return FColor::Black;
 	}
 
+	return FColor::Black;
+
 	// We are using the source art so grab the original width/height
-	const int32 Width = OceanHeightMap->Source.GetSizeX();
+	/*const int32 Width = OceanHeightMap->Source.GetSizeX();
 	const int32 Height = OceanHeightMap->Source.GetSizeY();
 	const bool bUseSRGB = OceanHeightMap->SRGB;
 
@@ -189,7 +193,7 @@ FColor AOceanStateActor::GetHeighMapPixelColor(float U, float V) const
 	// Get color from 
 	const FColor* SrcPtr = &((FColor*)(HeightMapRawData.GetTypedData()))[(PixelY - 1) * Width + PixelX - 1];
 
-	return *SrcPtr;
+	return *SrcPtr;*/
 }
 
 

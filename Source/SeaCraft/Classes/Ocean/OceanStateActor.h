@@ -12,12 +12,14 @@ class AOceanStateActor : public AActor
 {
 	GENERATED_UCLASS_BODY()
 
+#if WITH_EDITORONLY_DATA
 	/** A UBillboardComponent to hold Icon sprite */
 	UPROPERTY()
 	TSubobjectPtr<UBillboardComponent> SpriteComponent;
 
 	/** Icon sprite */
 	UTexture2D* SpriteTexture;
+#endif // WITH_EDITORONLY_DATA
 
 	/** Set global zero ocean level (ocean mesh Z location) */
 	UFUNCTION(BlueprintCallable, Category = "World|Ocean")
