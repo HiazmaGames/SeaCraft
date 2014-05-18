@@ -13,11 +13,15 @@ public class SeaCraft : ModuleRules
                 "Engine",
                 "InputCore",
                 "OnlineSubsystem",
-                "OnlineSubsystemUtils" 
+                "OnlineSubsystemUtils"
             });
 
-		// Uncomment if you are using Slate UI
-        PublicDependencyModuleNames.Add("VaOceanPlugin");
+		// Custom plugins
+        PublicDependencyModuleNames.AddRange(
+            new string[] {
+                "VaOceanPlugin",
+                "VaQuoleUIPlugin"
+            });
 		
 		PrivateDependencyModuleNames.Add("OnlineSubsystem");
 		if ((Target.Platform == UnrealTargetPlatform.Win32) || (Target.Platform == UnrealTargetPlatform.Win64))

@@ -12,7 +12,7 @@ class ASeaCraftPlayerController : public APlayerController
 {
 	GENERATED_UCLASS_BODY()
 
-	/** initialize the input system from the player settings */
+	/** Initialize the input system from the player settings */
 	virtual void InitInputSystem() OVERRIDE;
 
 	/** Check if gameplay related actions (movement, weapon usage, etc) are allowed right now */
