@@ -29,6 +29,10 @@ struct FReplicatedShipState
 	// state replication: current gear
 	UPROPERTY()
 	int32 CurrentGear;
+
+	// state replication: current rotation angle
+	UPROPERTY()
+	float TargetTurnAngle;
 };
 
 /** We use our own struct to be sure that nothing will be changed externally */
@@ -107,6 +111,10 @@ class UShipVehicleMovementComponent : public UPawnMovementComponent
 	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
 	void SetUseAutoGears(bool bUseAuto);
 
+	/** Set the user input for ship turn angle */
+	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
+	void SetTargetTurnAngle(float TurnAngle);
+
 	/** How fast the vehicle is moving forward */
 	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
 	float GetForwardSpeed() const;
@@ -130,6 +138,14 @@ class UShipVehicleMovementComponent : public UPawnMovementComponent
 	/** Are gears being changed automatically? */
 	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
 	bool GetUseAutoGears() const;
+
+	/** What is the current screw rotation angle? */
+	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
+	float GetTargetTurnAngle() const;
+
+	/** What is the maximum allowed screw rotation angle? */
+	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
+	float GetMaxTurnAngle() const;
 
 	//Begin UActorComponent Interface
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) OVERRIDE;
@@ -242,7 +258,7 @@ protected:
 
 	/** Pass current state to server */
 	UFUNCTION(reliable, server, WithValidation)
-	void ServerUpdateState(float InSteeringInput, float InThrottleInput, float InBrakeInput, float InHandbrakeInput, int32 CurrentGear);
+	void ServerUpdateState(float InSteeringInput, float InThrottleInput, float InBrakeInput, float InHandbrakeInput, int32 CurrentGear, float InTargetAngle);
 
 	/** Get the local COM offset */
 	virtual FVector GetCOMOffset();
@@ -250,19 +266,23 @@ protected:
 protected:
 
 	/** Forwards acceleration */
-	UPROPERTY(EditAnywhere, Category = WaveReaction)
+	UPROPERTY(EditAnywhere, Category = VehicleGears)
 	float ThrustForceFactor;
 
 	/** Backwards acceleration */
-	UPROPERTY(EditAnywhere, Category = WaveReaction)
+	UPROPERTY(EditAnywhere, Category = VehicleGears)
 	float ReverseForceFactor;
 
 	/** Turn acceleration */
-	UPROPERTY(EditAnywhere, Category = WaveReaction)
+	UPROPERTY(EditAnywhere, Category = VehicleGears)
 	float TurnTorqueFactor;
 
 	/** Max angle of motor? */
-	UPROPERTY(EditAnywhere, Category = WaveReaction)
+	UPROPERTY(EditAnywhere, Category = VehicleGears)
 	float MaxTurnAngle;
+
+	/** Current vehicle turn angle */
+	UPROPERTY(Transient)
+	float TargetTurnAngle;
 
 };

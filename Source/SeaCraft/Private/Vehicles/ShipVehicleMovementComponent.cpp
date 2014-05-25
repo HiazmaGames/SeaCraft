@@ -48,7 +48,7 @@ void UShipVehicleMovementComponent::UpdateState(float DeltaTime)
 		HandbrakeInput = HandbrakeInputRate.InterpInputValue(DeltaTime, HandbrakeInput, CalcHandbrakeInput());
 
 		// and send to server
-		ServerUpdateState(SteeringInput, ThrottleInput, BrakeInput, HandbrakeInput, GetCurrentGear());
+		ServerUpdateState(SteeringInput, ThrottleInput, BrakeInput, HandbrakeInput, GetCurrentGear(), TargetTurnAngle);
 	}
 	else
 	{
@@ -57,21 +57,23 @@ void UShipVehicleMovementComponent::UpdateState(float DeltaTime)
 		ThrottleInput = ReplicatedState.ThrottleInput;
 		BrakeInput = ReplicatedState.BrakeInput;
 		HandbrakeInput = ReplicatedState.HandbrakeInput;
+		TargetTurnAngle = ReplicatedState.TargetTurnAngle;
 		SetTargetGear(ReplicatedState.CurrentGear, true);
 	}
 }
 
-bool UShipVehicleMovementComponent::ServerUpdateState_Validate(float InSteeringInput, float InThrottleInput, float InBrakeInput, float InHandbrakeInput, int32 InCurrentGear)
+bool UShipVehicleMovementComponent::ServerUpdateState_Validate(float InSteeringInput, float InThrottleInput, float InBrakeInput, float InHandbrakeInput, int32 InCurrentGear, float InTargetAngle)
 {
 	return true;
 }
 
-void UShipVehicleMovementComponent::ServerUpdateState_Implementation(float InSteeringInput, float InThrottleInput, float InBrakeInput, float InHandbrakeInput, int32 InCurrentGear)
+void UShipVehicleMovementComponent::ServerUpdateState_Implementation(float InSteeringInput, float InThrottleInput, float InBrakeInput, float InHandbrakeInput, int32 InCurrentGear, float InTargetAngle)
 {
 	SteeringInput = InSteeringInput;
 	ThrottleInput = InThrottleInput;
 	BrakeInput = InBrakeInput;
 	HandbrakeInput = InHandbrakeInput;
+	TargetTurnAngle = InTargetAngle;
 
 	if (!GetUseAutoGears())
 	{
@@ -84,11 +86,12 @@ void UShipVehicleMovementComponent::ServerUpdateState_Implementation(float InSte
 	ReplicatedState.BrakeInput = InBrakeInput;
 	ReplicatedState.HandbrakeInput = InHandbrakeInput;
 	ReplicatedState.CurrentGear = InCurrentGear;
+	ReplicatedState.TargetTurnAngle = InTargetAngle;
 }
 
 float UShipVehicleMovementComponent::CalcSteeringInput()
 {
-	return RawSteeringInput;
+	return /*RawSteeringInput*/ (float)TargetTurnAngle / (float)MaxTurnAngle;
 }
 
 float UShipVehicleMovementComponent::CalcBrakeInput()
@@ -149,7 +152,7 @@ float UShipVehicleMovementComponent::CalcThrottleInput()
 {
 	if (CurrentGearCustom < 0)
 	{
-		return (float)CurrentGearCustom / (float)MaxGearBackward;
+		return -1.0f * (float)CurrentGearCustom / (float)MaxGearBackward;
 	}
 
 	return /*RawThrottleInput*/ (float)CurrentGearCustom / (float)MaxGearForward;
@@ -213,6 +216,18 @@ void UShipVehicleMovementComponent::SetUseAutoGears(bool bUseAuto)
 	// PHYSX GEAR
 	//
 #endif
+}
+
+void UShipVehicleMovementComponent::SetTargetTurnAngle(float TurnAngle)
+{
+	if (TurnAngle > 0)
+	{
+		TargetTurnAngle = FMath::Min(TurnAngle, MaxTurnAngle);
+	}
+	else
+	{
+		TargetTurnAngle = FMath::Max(TurnAngle, -MaxTurnAngle);
+	}
 }
 
 float UShipVehicleMovementComponent::GetForwardSpeed() const
@@ -290,6 +305,16 @@ bool UShipVehicleMovementComponent::GetUseAutoGears() const
 	return false;
 }
 
+float UShipVehicleMovementComponent::GetTargetTurnAngle() const
+{
+	return TargetTurnAngle;
+}
+
+float UShipVehicleMovementComponent::GetMaxTurnAngle() const
+{
+	return MaxTurnAngle;
+}
+
 void UShipVehicleMovementComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -338,7 +363,17 @@ void UShipVehicleMovementComponent::PerformMovement(float DeltaTime)
 		UpdatedComponent->SetPhysicsAngularVelocity(ForceRotation, true);
 
 		// The magic happens here
-		FVector ForceApplication = (ThrustForceFactor * Mass) * ThrottleInput * X * DeltaTime;
+		FVector ForceApplication = FVector::ZeroVector;
+
+		if (ThrottleInput > 0)
+		{
+			ForceApplication = (ThrustForceFactor * Mass) * ThrottleInput * X * DeltaTime;
+		}
+		else
+		{
+			ForceApplication = (ReverseForceFactor * Mass) * ThrottleInput * X * DeltaTime;
+		}
+
 		ForceApplication = ForceApplication.RotateAngleAxis(MaxTurnAngle * -SteeringInput, FVector(0.0f, 0.0f, 1.0f));
 
 		// Add forces and rotations (use velocity instead torque/force)
