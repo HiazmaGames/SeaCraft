@@ -123,6 +123,10 @@ class UShipVehicleMovementComponent : public UPawnMovementComponent
 	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
 	int32 GetTargetGear() const;
 
+	/** Get gears numbrt */
+	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
+	int32 GetMaxGear(bool bForward = true) const;
+
 	/** Are gears being changed automatically? */
 	UFUNCTION(BlueprintCallable, Category = "Game|Components|ShipVehicleMovement")
 	bool GetUseAutoGears() const;
@@ -139,8 +143,19 @@ protected:
 	static void GetAxes(FRotator A, FVector& X, FVector& Y, FVector& Z);
 
 protected:
+	/** Maximum gear to move forward */
+	UPROPERTY(EditAnywhere, Category = VehicleGears)
+	int32 MaxGearForward;
 
-	// replicated state of vehicle 
+	/** Maximum gear to move backward (negative!) */
+	UPROPERTY(EditAnywhere, Category = VehicleGears)
+	int32 MaxGearBackward;
+
+	/** Current vehicle gear */
+	UPROPERTY(Transient)
+	int32 CurrentGearCustom;
+
+	// Replicated state of vehicle 
 	UPROPERTY(Transient, Replicated)
 	FReplicatedShipState ReplicatedState;
 

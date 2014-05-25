@@ -25,6 +25,10 @@ UShipVehicleMovementComponent::UShipVehicleMovementComponent(const class FPostCo
 	
 	TurnTorqueFactor = 40.0f;
 	MaxTurnAngle = 10.0f;
+
+	MaxGearForward = 4;
+	MaxGearBackward = -2;
+	CurrentGearCustom = 0;
 }
 
 FVector UShipVehicleMovementComponent::GetCOMOffset()
@@ -93,6 +97,9 @@ float UShipVehicleMovementComponent::CalcBrakeInput()
 
 	float NewBrakeInput = 0.0f;
 
+	// @TODO Anchor down even calculation here
+	return NewBrakeInput;
+
 	// if player wants to move forwards...
 	if (RawThrottleInput > 0.1f)  // MSS expanded hardcoded dead zone from 0.01f to filter weird throttle noise.
 	{
@@ -140,7 +147,12 @@ float UShipVehicleMovementComponent::CalcHandbrakeInput()
 
 float UShipVehicleMovementComponent::CalcThrottleInput()
 {
-	return RawThrottleInput;
+	if (CurrentGearCustom < 0)
+	{
+		return (float)CurrentGearCustom / (float)MaxGearBackward;
+	}
+
+	return /*RawThrottleInput*/ (float)CurrentGearCustom / (float)MaxGearForward;
 }
 
 void UShipVehicleMovementComponent::ClearInput()
@@ -183,6 +195,15 @@ void UShipVehicleMovementComponent::SetTargetGear(int32 GearNum, bool bImmediate
 	// PHYSX GEAR
 	//
 #endif
+
+	if (GearNum > 0)
+	{
+		CurrentGearCustom = FMath::Min(GearNum, MaxGearForward);
+	}
+	else
+	{
+		CurrentGearCustom = FMath::Max(GearNum, MaxGearBackward);
+	}
 }
 
 void UShipVehicleMovementComponent::SetUseAutoGears(bool bUseAuto)
@@ -224,7 +245,7 @@ int32 UShipVehicleMovementComponent::GetCurrentGear() const
 	//
 #endif
 
-	return 0;
+	return CurrentGearCustom;
 }
 
 int32 UShipVehicleMovementComponent::GetTargetGear() const
@@ -234,6 +255,26 @@ int32 UShipVehicleMovementComponent::GetTargetGear() const
 	// PHYSX
 	//
 #endif
+
+	return 0;
+}
+
+int32 UShipVehicleMovementComponent::GetMaxGear(bool bForward) const
+{
+#if WITH_PHYSX
+	//
+	// PHYSX
+	//
+#endif
+
+	if (bForward)
+	{
+		return MaxGearForward;
+	}
+	else
+	{
+		return MaxGearBackward;
+	}
 
 	return 0;
 }
