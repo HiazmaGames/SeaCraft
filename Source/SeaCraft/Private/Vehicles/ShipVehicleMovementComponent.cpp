@@ -6,7 +6,6 @@ UShipVehicleMovementComponent::UShipVehicleMovementComponent(const class FPostCo
 	: Super(PCIP)
 {
 	Mass = 1500.0f;
-	OceanLevel = 0.0f;
 	// InertiaTensorScale = FVector(1.0f, 0.80f, 1.0f);
 	AngErrorAccumulator = 0.0f;
 
@@ -21,29 +20,11 @@ UShipVehicleMovementComponent::UShipVehicleMovementComponent(const class FPostCo
 	SteeringInputRate.RiseRate = 2.5f;
 	SteeringInputRate.FallRate = 5.0f;
 
-	// Wave reaction defaults
 	ThrustForceFactor = 40000.0f;
 	ReverseForceFactor = 10000.0f;
 	
 	TurnTorqueFactor = 40.0f;
 	MaxTurnAngle = 10.0f;
-
-	TensionTorqueFactor = 0.01f;
-	TensionTorqueRollFactor = 10000000.0f;
-	TensionTorquePitchFactor = 30.0f;	// Pitch is mostly controlled by tesntion dots
-	TensionDepthFactor = 100.0f;
-
-	AltitudeFactor = 10.0f;
-	VelocityFactor = 1.0f;
-
-	MaxAltitudeForce = 600.0f;
-	MinimumAltituteToReact = 30.0f;
-
-	bDebugTensionDots = false;
-	bUseMetacentricForces = false;
-
-	LongitudinalMetacenter = FVector(0.0f, 0.0f, 150.0f);
-	TransverseMetacenter = FVector(0.0, 0.0, 50.0);
 }
 
 FVector UShipVehicleMovementComponent::GetCOMOffset()
@@ -289,7 +270,6 @@ void UShipVehicleMovementComponent::TickComponent(float DeltaTime, enum ELevelTi
 
 	// React on world and input
 	PerformMovement(DeltaTime);
-	PerformWaveReaction(DeltaTime);
 }
 
 void UShipVehicleMovementComponent::PerformMovement(float DeltaTime)
@@ -325,137 +305,8 @@ void UShipVehicleMovementComponent::PerformMovement(float DeltaTime)
 	}
 }
 
-void UShipVehicleMovementComponent::PerformWaveReaction(float DeltaTime)
-{
-	if (!UpdatedComponent)
-	{
-		return;
-	}
-
-	const FVector OldLocation = PawnOwner->GetActorLocation();
-	const FRotator OldRotation = PawnOwner->GetActorRotation();
-	const FVector OldLinearVelocity = UpdatedComponent->GetPhysicsLinearVelocity();
-	const FVector OldAngularVelocity = UpdatedComponent->GetPhysicsAngularVelocity();
-	const FVector OldCenterOfMassWorld = OldLocation + OldRotation.RotateVector(COMOffset);
-
-	// XYZ === Throttle, Steering, Rise == Forwards, Sidewards, Upwards
-	FVector X, Y, Z;
-	GetAxes(OldRotation, X, Y, Z);
-
-	// Process tension dots and get torque from wind/waves
-	for (FVector TensionDot : TensionDots)
-	{
-		// Translate point to world coordinates
-		FVector TensionDotDisplaced = OldRotation.RotateVector(TensionDot + COMOffset);
-		FVector TensionDotWorld = OldLocation + TensionDotDisplaced;
-
-		// Get point depth
-		float DotAltitude = GetAltitude(TensionDotWorld);
-		//TensionedAltitude += DotAltitude;
-
-		// Don't process dots above water
-		if (DotAltitude > 0)
-		{
-			continue;
-		}
-		
-		// Surface normal (not modified!)
-		FVector DotSurfaceNormal = GetSurfaceNormal(TensionDotWorld) * GetSurfaceWavesNum();
-		// Modify normal with real Z value and normalize it
-		DotSurfaceNormal.Z = GetOceanLevel(TensionDotWorld);
-		DotSurfaceNormal.Normalize();
-
-		// Point dynamic pressure [http://en.wikipedia.org/wiki/Dynamic_pressure]
-		// rho = 1.03f for ocean water
-		FVector WaveVelocity = GetWaveVelocity(TensionDotWorld);
-		float DotQ = 0.515f * FMath::Square(WaveVelocity.Size());
-		FVector WaveForce = FVector(0.0,0.0,1.0) * DotQ /* DotSurfaceNormal*/ * (-DotAltitude) * TensionDepthFactor;
-		
-		// We don't want Z to be affected by DotQ
-		WaveForce.Z /= DotQ;
-
-		// Scale to DeltaTime to break FPS addiction
-		WaveForce *= DeltaTime;
-
-		UpdatedComponent->AddForceAtLocation(WaveForce * Mass, TensionDotWorld);
-	}
-
-	// Static metacentric forces (can be useful on small waves)
-	if (bUseMetacentricForces)
-	{
-		FVector TensionTorqueResult = FVector(0.0f, 0.0f, 0.0f);
-
-		// Calc recovering torque (transverce)
-		FRotator RollRot = FRotator(0.0f, 0.0f, 0.0f);
-		RollRot.Roll = OldRotation.Roll;
-		FVector MetacenterDisplaced = RollRot.RotateVector(TransverseMetacenter + COMOffset);
-		TensionTorqueResult += X * FVector::DotProduct((TransverseMetacenter - MetacenterDisplaced), 
-			FVector(0.0f, -1.0f, 0.0f)) * TensionTorqueRollFactor;
-
-		// Calc recovering torque (longitude)
-		FRotator PitchRot = FRotator(0.0f, 0.0f, 0.0f);
-		PitchRot.Pitch = OldRotation.Pitch;
-		MetacenterDisplaced = PitchRot.RotateVector(LongitudinalMetacenter + COMOffset);
-		TensionTorqueResult += Y * FVector::DotProduct((LongitudinalMetacenter - MetacenterDisplaced), 
-			FVector(1.0f, 0.0f, 0.0f)) * TensionTorquePitchFactor;
-
-		// Apply torque
-		TensionTorqueResult *= DeltaTime;
-		UpdatedComponent->AddTorque(TensionTorqueResult);
-	}
-}
-
 void UShipVehicleMovementComponent::GetAxes(FRotator A, FVector& X, FVector& Y, FVector& Z)
 {
 	FRotationMatrix R(A);
 	R.GetScaledAxes(X, Y, Z);
-}
-
-float UShipVehicleMovementComponent::GetOceanLevel(FVector& WorldLocation) const
-{
-	ASeaCraftGameState* const MyGameState = Cast<ASeaCraftGameState>(GetWorld()->GameState);
-	if (MyGameState)
-	{
-		return MyGameState->GetOceanLevelAtLocation(WorldLocation);
-	}
-
-	return OceanLevel;
-}
-
-float UShipVehicleMovementComponent::GetAltitude(FVector& WorldLocation) const
-{
-	return WorldLocation.Z - GetOceanLevel(WorldLocation) /*+ COMOffset.Z*/;
-}
-
-FLinearColor UShipVehicleMovementComponent::GetSurfaceNormal(FVector& WorldLocation) const
-{
-	ASeaCraftGameState* const MyGameState = Cast<ASeaCraftGameState>(GetWorld()->GameState);
-	if (MyGameState)
-	{
-		return MyGameState->GetOceanSurfaceNormal(WorldLocation);
-	}
-
-	return FVector();
-}
-
-int32 UShipVehicleMovementComponent::GetSurfaceWavesNum() const
-{
-	ASeaCraftGameState* const MyGameState = Cast<ASeaCraftGameState>(GetWorld()->GameState);
-	if (MyGameState)
-	{
-		return MyGameState->GetOceanWavesNum();
-	}
-
-	return 0;
-}
-
-FVector UShipVehicleMovementComponent::GetWaveVelocity(FVector& WorldLocation) const
-{
-	ASeaCraftGameState* const MyGameState = Cast<ASeaCraftGameState>(GetWorld()->GameState);
-	if (MyGameState)
-	{
-		return MyGameState->GetOceanWaveVelocity(WorldLocation);
-	}
-
-	return FVector();
 }
