@@ -4,6 +4,7 @@
 
 #include "SeaCraftVehicleWeaponComponent.generated.h"
 
+UENUM(BlueprintType)
 namespace EVWeaponState
 {
 	enum Type
@@ -23,6 +24,10 @@ UCLASS(Abstract, HeaderGroup = Component)
 class USeaCraftVehicleWeaponComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
+
+	// Begin UActorComponent Interface
+	virtual void InitializeComponent() OVERRIDE;
+	// End UActorComponent Interface
 
 	/** Time between two consecutive shots */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
@@ -54,7 +59,8 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 	// Ammo
 
 	/** [server] add ammo */
-	void GiveAmmo(int AddAmount);
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
+	void GiveAmmo(int32 AddAmount);
 
 	/** Consume a bullet */
 	void UseAmmo();
@@ -64,21 +70,35 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 	// Reading data
 
 	/** Get current weapon state */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	EVWeaponState::Type GetCurrentState() const;
 
 	/** Get vehicle-unique weapon id */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	FName GetWeaponID() const;
 
 	/** Get vehicle-unique group id */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	FName GetGroupID() const;
 
+	/** Get weapon localized name */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
+	FText GetWeaponName() const;
+
 	/** Get current ammo amount (total) */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	int32 GetCurrentAmmo() const;
 
+	/** Get maximum ammo amount */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
+	int32 GetMaxAmmo() const;
+
 	/** Check if weapon has infinite ammo (include owner's cheats) */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	bool HasInfiniteAmmo() const;
 
 	/** Get last active turret socket */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	FName GetLastActiveTurretBarrel() const;
 
 
@@ -114,6 +134,10 @@ protected:
 	/** Current total ammo */
 	UPROPERTY(Transient, Replicated)
 	int32 CurrentAmmo;
+
+	/** Maximum ammo */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+	int32 MaxAmmo;
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -155,20 +179,25 @@ protected:
 	//////////////////////////////////////////////////////////////////////////
 	// Weapon usage helpers
 
+public:
 	/** Get the aim of the weapon, allowing for adjustments to be made by the weapon */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	virtual FVector GetAdjustedAim() const;
 
+	/** Get the muzzle location of the weapon */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
+	FVector GetMuzzleLocation() const;
+
+	/** Get direction of weapon's muzzle */
+	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
+	FVector GetMuzzleDirection() const;
+
+protected:
 	/** Get the aim of the camera */
 	FVector GetCameraAim() const;
 
 	/** Get the originating location for camera damage */
 	FVector GetCameraDamageStartLocation(const FVector& AimDir) const;
-
-	/** Get the muzzle location of the weapon */
-	FVector GetMuzzleLocation() const;
-
-	/** Get direction of weapon's muzzle */
-	FVector GetMuzzleDirection() const;
 
 	/** Find hit */
 	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const;

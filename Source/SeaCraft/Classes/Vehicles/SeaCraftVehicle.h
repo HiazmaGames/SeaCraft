@@ -44,6 +44,10 @@ class ASeaCraftVehicle : public APawn
 	UFUNCTION(BlueprintCallable, Category = "Player|Vehicle|SeaCraftVehicle")
 	void SetWeaponGroup(FName WeaponGroup);
 
+	/** Cached current weapon group */
+	UPROPERTY(Category = Vehicle, VisibleAnywhere, BlueprintReadOnly)
+	TArray<USeaCraftVehicleWeaponComponent*> CurrentWeapons;
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// Weapon usage
@@ -80,8 +84,5 @@ class ASeaCraftVehicle : public APawn
 protected:
 	/** Current firing state */
 	uint8 bWantsToFire : 1;
-
-	/** Cached current weapon group */
-	TArray<USeaCraftVehicleWeaponComponent*> CurrentWeapons;
 
 };

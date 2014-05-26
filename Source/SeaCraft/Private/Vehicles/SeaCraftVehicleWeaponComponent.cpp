@@ -5,14 +5,22 @@
 USeaCraftVehicleWeaponComponent::USeaCraftVehicleWeaponComponent(const class FPostConstructInitializeProperties& PCIP)
 	: Super(PCIP)
 {
+	bWantsInitializeComponent = true;
+
 	bWantsToFire = false;
 	CurrentState = EVWeaponState::Idle;
 
 	LastActiveTurretBarrel = 0;
 
-	CurrentAmmo = 0;
+	MaxAmmo = 100;
+	CurrentAmmo = MaxAmmo;
 	TimeBetweenShots = 0.2f;
 	LastFireTime = 0.0f;
+}
+
+void USeaCraftVehicleWeaponComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -349,6 +357,11 @@ FName USeaCraftVehicleWeaponComponent::GetGroupID() const
 int32 USeaCraftVehicleWeaponComponent::GetCurrentAmmo() const
 {
 	return CurrentAmmo;
+}
+
+int32 USeaCraftVehicleWeaponComponent::GetMaxAmmo() const
+{
+	return MaxAmmo;
 }
 
 bool USeaCraftVehicleWeaponComponent::HasInfiniteAmmo() const
