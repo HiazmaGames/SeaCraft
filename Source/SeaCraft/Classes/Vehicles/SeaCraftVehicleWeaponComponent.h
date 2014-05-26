@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "GameFramework/PawnMovementComponent.h"
 #include "SeaCraftVehicleWeaponComponent.generated.h"
 
 namespace EVWeaponState
@@ -18,7 +17,7 @@ namespace EVWeaponState
 }
 
 /**
- * 
+ * Basic class for weapon "inside" vehicle mesh
  */
 UCLASS(Abstract, HeaderGroup = Component)
 class USeaCraftVehicleWeaponComponent : public UActorComponent

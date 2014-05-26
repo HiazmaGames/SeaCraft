@@ -31,8 +31,14 @@ class ASeaCraftVehicle : public APawn
 	//////////////////////////////////////////////////////////////////////////
 	// Weapon control
 
+	/** List of unique weapon groups */
+	TArray<FName> WeaponGroups;
+
 	/** Current controlled weapon group */
 	FName CurrentWeaponGroup;
+
+	/** Returns index of desired weapon group, -1 if group is not found */
+	int32 FindWeaponGroup(const FName& WeaponGroup);
 
 	/** Activates weapon group and makes it controlled by player */
 	UFUNCTION(BlueprintCallable, Category = "Player|Vehicle|SeaCraftVehicle")

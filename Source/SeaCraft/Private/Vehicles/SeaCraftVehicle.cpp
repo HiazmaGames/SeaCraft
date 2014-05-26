@@ -31,8 +31,12 @@ void ASeaCraftVehicle::PostInitializeComponents()
 
 	for (int i = 0; i < Components.Num(); i++)
 	{
-		SetWeaponGroup(Components[i]->GetGroupID());
-		break;
+		WeaponGroups.AddUnique(Components[i]->GetGroupID());
+	}
+
+	if (WeaponGroups.Num() > 0)
+	{
+		SetWeaponGroup(WeaponGroups[0]);
 	}
 }
 
@@ -58,6 +62,19 @@ void ASeaCraftVehicle::SetWeaponGroup(FName WeaponGroup)
 			CurrentWeapons.Add(Components[i]);
 		}
 	}
+}
+
+int32 ASeaCraftVehicle::FindWeaponGroup(const FName& WeaponGroup)
+{
+	for (int i = 0; i < WeaponGroups.Num(); i++)
+	{
+		if (WeaponGroups[i] == CurrentWeaponGroup)
+		{
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 
@@ -129,10 +146,36 @@ void ASeaCraftVehicle::OnStopFire()
 
 void ASeaCraftVehicle::OnNextWeapon()
 {
-	// @TODO OnNextWeapon
+	if (WeaponGroups.Num() == 0)
+	{
+		return;
+	}
+
+	int32 CurrentIdx = FindWeaponGroup(CurrentWeaponGroup);
+	int32 NewIndex = CurrentIdx + 1;
+
+	if (!WeaponGroups.IsValidIndex(NewIndex))
+	{
+		NewIndex = 0;
+	}
+
+	SetWeaponGroup(WeaponGroups[NewIndex]);
 }
 
 void ASeaCraftVehicle::OnPrevWeapon()
 {
-	// @TODO OnPrevWeapon
+	if (WeaponGroups.Num() == 0)
+	{
+		return;
+	}
+
+	int32 CurrentIdx = FindWeaponGroup(CurrentWeaponGroup);
+	int32 NewIndex = CurrentIdx - 1;
+
+	if (!WeaponGroups.IsValidIndex(NewIndex))
+	{
+		NewIndex = WeaponGroups.Num() - 1;
+	}
+
+	SetWeaponGroup(WeaponGroups[NewIndex]);
 }
