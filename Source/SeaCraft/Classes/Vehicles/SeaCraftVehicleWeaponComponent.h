@@ -81,10 +81,6 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	FName GetGroupID() const;
 
-	/** Get weapon localized name */
-	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
-	FText GetWeaponName() const;
-
 	/** Get current ammo amount (total) */
 	UFUNCTION(BlueprintCallable, Category = "Game|VehicleWeapon")
 	int32 GetCurrentAmmo() const;
