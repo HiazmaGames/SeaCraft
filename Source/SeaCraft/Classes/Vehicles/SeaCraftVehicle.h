@@ -81,7 +81,80 @@ class ASeaCraftVehicle : public APawn
 	void OnPrevWeapon();
 
 
+	//////////////////////////////////////////////////////////////////////////
+	// Damage & death
+
+public:
+	/** Identifies if pawn is in its dying state */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health)
+	uint32 bIsDying : 1;
+
+	/** Current health of the Pawn */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Health)
+	float Health;
+
+	/** Take damage, handle death */
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) OVERRIDE;
+
+	/** Pawn suicide */
+	virtual void Suicide();
+
+	/** Kill this pawn */
+	virtual void KilledBy(class APawn* EventInstigator);
+
+	/** Returns True if the pawn can die in the current state */
+	virtual bool CanDie(float KillingDamage, FDamageEvent const& DamageEvent, AController* Killer, AActor* DamageCauser) const;
+
+	/**
+	 * Kills pawn.  Server/authority only.
+	 * @param KillingDamage - Damage amount of the killing blow
+	 * @param DamageEvent - Damage event of the killing blow
+	 * @param Killer - Who killed this pawn
+	 * @param DamageCauser - the Actor that directly caused the damage (i.e. the Projectile that exploded, the Weapon that fired, etc)
+	 * @returns true if allowed
+	 */
+	virtual bool Die(float KillingDamage, struct FDamageEvent const& DamageEvent, class AController* Killer, class AActor* DamageCauser);
+
+	/** Die when we fall out of the world */
+	virtual void FellOutOfWorld(const class UDamageType& dmgType) OVERRIDE;
+
+	/** Called on the actor right before replication occurs */
+	virtual void PreReplication(IRepChangedPropertyTracker & ChangedPropertyTracker) OVERRIDE;
 protected:
+	/** Notification when killed, for both the server and client. */
+	virtual void OnDeath(float KillingDamage, struct FDamageEvent const& DamageEvent, class APawn* InstigatingPawn, class AActor* DamageCauser);
+
+	/** Play effects on hit */
+	virtual void PlayHit(float DamageTaken, struct FDamageEvent const& DamageEvent, class APawn* PawnInstigator, class AActor* DamageCauser);
+
+	/** Sets up the replication for taking a hit */
+	void ReplicateHit(float Damage, struct FDamageEvent const& DamageEvent, class APawn* InstigatingPawn, class AActor* DamageCauser, bool bKilled);
+
+	/** Play hit or death on client */
+	UFUNCTION()
+	void OnRep_LastTakeHitInfo();
+
+	/** Responsible for cleaning up bodies on clients. */
+	virtual void TornOff();
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// Reading data
+
+protected:
+	/** Get max health */
+	int32 GetMaxHealth() const;
+
+	/** Check if pawn is still alive */
+	bool IsAlive() const;
+
+	/** Replicate where this pawn was last hit and damaged */
+	UPROPERTY(Transient, ReplicatedUsing=OnRep_LastTakeHitInfo)
+	struct FTakeHitInfo LastTakeHitInfo;
+
+	/** Time at which point the last take hit info for the actor times out and won't be replicated; Used to stop join-in-progress effects all over the screen */
+	float LastTakeHitTimeTimeout;
+
 	/** Current firing state */
 	uint8 bWantsToFire : 1;
 
