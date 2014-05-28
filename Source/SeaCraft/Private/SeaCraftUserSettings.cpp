@@ -27,7 +27,7 @@ void USeaCraftUserSettings::SetToDefaults()
 	bInvertedYAxis = false;
 	AimSensitivity = 1.0f;
 	Gamma = 2.2f;
-	GraphicsQuality = 1;
+	GraphicsQuality = 2;
 }
 
 void USeaCraftUserSettings::ApplySettings()
