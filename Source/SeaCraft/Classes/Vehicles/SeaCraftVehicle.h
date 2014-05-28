@@ -141,13 +141,20 @@ protected:
 	//////////////////////////////////////////////////////////////////////////
 	// Reading data
 
-protected:
+public:
+	/** Get current health */
+	UFUNCTION(BlueprintCallable, Category = "Player|Vehicle|SeaCraftVehicle")
+	float GetHealth() const;
+
 	/** Get max health */
+	UFUNCTION(BlueprintCallable, Category = "Player|Vehicle|SeaCraftVehicle")
 	int32 GetMaxHealth() const;
 
 	/** Check if pawn is still alive */
+	UFUNCTION(BlueprintCallable, Category = "Player|Vehicle|SeaCraftVehicle")
 	bool IsAlive() const;
 
+protected:
 	/** Replicate where this pawn was last hit and damaged */
 	UPROPERTY(Transient, ReplicatedUsing=OnRep_LastTakeHitInfo)
 	struct FTakeHitInfo LastTakeHitInfo;

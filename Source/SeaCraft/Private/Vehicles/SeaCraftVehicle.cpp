@@ -305,6 +305,11 @@ void ASeaCraftVehicle::TornOff()
 //////////////////////////////////////////////////////////////////////////
 // Reading data
 
+float ASeaCraftVehicle::GetHealth() const
+{
+	return Health;
+}
+
 int32 ASeaCraftVehicle::GetMaxHealth() const
 {
 	return GetClass()->GetDefaultObject<ASeaCraftVehicle>()->Health;
