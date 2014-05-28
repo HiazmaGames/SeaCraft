@@ -17,3 +17,19 @@ AShipVehicle::AShipVehicle(const class FPostConstructInitializeProperties& PCIP)
 	VehicleMovement->SetIsReplicated(true); // Enable replication by default
 	VehicleMovement->UpdatedComponent = VehicleMesh;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// Reading data
+
+float AShipVehicle::GetFloatage() const
+{
+	// @TODO Calc floatage from modules
+	return 65.0f;
+}
+
+int32 AShipVehicle::GetMaxFloatage() const
+{
+	// @TODO Calc max floatage from modules
+	return 100;
+}
