@@ -238,6 +238,12 @@ float UShipVehicleMovementComponent::GetForwardSpeed() const
 	//
 #endif
 
+	AActor* Vehicle = GetOwner();
+	if (Vehicle != NULL)
+	{
+		return Vehicle->GetVelocity().Size();
+	}
+
 	return 0.0f;
 }
 
