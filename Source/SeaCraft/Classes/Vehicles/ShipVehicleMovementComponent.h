@@ -65,7 +65,7 @@ struct FShipVehicleInputRate
 /**
  * 
  */
-UCLASS(HeaderGroup=Component)
+UCLASS(/*HeaderGroup=Component*/)
 class UShipVehicleMovementComponent : public UPawnMovementComponent
 {
 	GENERATED_UCLASS_BODY()

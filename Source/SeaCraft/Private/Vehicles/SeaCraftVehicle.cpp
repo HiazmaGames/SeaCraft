@@ -14,7 +14,7 @@ ASeaCraftVehicle::ASeaCraftVehicle(const class FPostConstructInitializePropertie
 	VehicleMesh->BodyInstance.bNotifyRigidBodyCollision = true;
 	VehicleMesh->BodyInstance.bUseCCD = true;
 	VehicleMesh->bBlendPhysics = true;
-	VehicleMesh->bUseSingleBodyPhysics = true;
+	//VehicleMesh->bUseSingleBodyPhysics = true;
 	VehicleMesh->bGenerateOverlapEvents = true;
 	RootComponent = VehicleMesh;
 
@@ -146,7 +146,7 @@ bool ASeaCraftVehicle::CanDie(float KillingDamage, FDamageEvent const& DamageEve
 		|| IsPendingKill()								// already destroyed
 		|| Role != ROLE_Authority						// not authority
 		|| GetWorld()->GetAuthGameMode() == NULL
-		|| GetWorld()->GetAuthGameMode()->bLevelChange)	// level transition occurring
+		/*|| GetWorld()->GetAuthGameMode()->bLevelChange*/)	// level transition occurring
 	{
 		return false;
 	}

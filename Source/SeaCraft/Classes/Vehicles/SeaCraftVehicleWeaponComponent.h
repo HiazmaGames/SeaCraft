@@ -20,7 +20,7 @@ namespace EVWeaponState
 /**
  * Basic class for weapon "inside" vehicle mesh
  */
-UCLASS(Abstract, HeaderGroup = Component)
+UCLASS(Abstract/*, HeaderGroup = Component*/)
 class USeaCraftVehicleWeaponComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
