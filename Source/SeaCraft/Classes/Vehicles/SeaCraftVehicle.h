@@ -8,13 +8,13 @@
 /**
  * Basic class for all vehicles that controls weapons, seats, effects and animations
  */
-UCLASS(abstract/*, HeaderGroup=Pawn*/, config = Game, dependson = AController, BlueprintType, Blueprintable, hidecategories = (Navigation, "AI|Navigation"))
+UCLASS(abstract/*, HeaderGroup=Pawn*/, config = Game, BlueprintType, Blueprintable, hidecategories = (Navigation, "AI|Navigation"))
 class ASeaCraftVehicle : public APawn
 {
 	GENERATED_UCLASS_BODY()
 
 	/** Configure weapons and setup initial variables */
-	virtual void PostInitializeComponents() OVERRIDE;
+	virtual void PostInitializeComponents() override;
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ class ASeaCraftVehicle : public APawn
 	// Input handlers
 
 	/** Setup vehicle specific input handlers */
-	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) OVERRIDE;
+	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 	/** Player pressed start fire action */
 	void OnStartFire();
@@ -94,7 +94,7 @@ public:
 	float Health;
 
 	/** Take damage, handle death */
-	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) OVERRIDE;
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
 	/** Pawn suicide */
 	virtual void Suicide();
@@ -116,10 +116,10 @@ public:
 	virtual bool Die(float KillingDamage, struct FDamageEvent const& DamageEvent, class AController* Killer, class AActor* DamageCauser);
 
 	/** Die when we fall out of the world */
-	virtual void FellOutOfWorld(const class UDamageType& dmgType) OVERRIDE;
+	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
 
 	/** Called on the actor right before replication occurs */
-	virtual void PreReplication(IRepChangedPropertyTracker & ChangedPropertyTracker) OVERRIDE;
+	virtual void PreReplication(IRepChangedPropertyTracker & ChangedPropertyTracker) override;
 protected:
 	/** Notification when killed, for both the server and client. */
 	virtual void OnDeath(float KillingDamage, struct FDamageEvent const& DamageEvent, class APawn* InstigatingPawn, class AActor* DamageCauser);

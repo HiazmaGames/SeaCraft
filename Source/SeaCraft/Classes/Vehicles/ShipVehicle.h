@@ -8,7 +8,7 @@
 /**
  * 
  */
-UCLASS(abstract/*, HeaderGroup=Pawn*/, config = Game, dependson = (AController), BlueprintType)
+UCLASS(abstract/*, HeaderGroup=Pawn*/, config = Game, BlueprintType)
 class AShipVehicle : public ASeaCraftVehicle
 {
 	GENERATED_UCLASS_BODY()

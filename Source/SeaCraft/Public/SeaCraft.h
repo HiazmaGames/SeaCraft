@@ -3,13 +3,12 @@
 #pragma once
 
 #include "Engine.h"
-//#include "EngineUserInterfaceClasses.h"
-#include "EngineKismetLibraryClasses.h"
-#include "ParticleDefinitions.h"
 #include "Net/UnrealNetwork.h"
+
+#include "ParticleDefinitions.h"
+#include "Particles/ParticleSystemComponent.h"
+
 #include "SeaCraftClasses.h"
-//#include "SeaCraftComponentClasses.h"
-//#include "SeaCraftPawnClasses.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShipPhysics, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogOcean, Log, All);

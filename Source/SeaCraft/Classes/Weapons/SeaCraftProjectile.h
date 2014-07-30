@@ -8,13 +8,13 @@
 /**
  * Main class for projectiles
  */
-UCLASS(Abstract, Blueprintable, DependsOn = USeaCraftVWeapon_Projectile)
+UCLASS(Abstract, Blueprintable)
 class ASeaCraftProjectile : public AActor
 {
 	GENERATED_UCLASS_BODY()
 
 	/** Initial setup */
-	virtual void PostInitializeComponents() OVERRIDE;
+	virtual void PostInitializeComponents() override;
 
 	/** Setup velocity */
 	void InitVelocity(FVector& ShootDirection);
@@ -68,5 +68,5 @@ protected:
 	void DisableAndDestroy();
 
 	/** Update velocity on client */
-	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) OVERRIDE;
+	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
 };

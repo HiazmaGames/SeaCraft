@@ -39,10 +39,10 @@ class ASeaCraftExplosionEffect : public AActor
 	FHitResult SurfaceHit;
 
 	/** Spawn explosion */
-	virtual void BeginPlay() OVERRIDE;
+	virtual void BeginPlay() override;
 
 	/** Update fading light */
-	virtual void Tick(float DeltaSeconds) OVERRIDE;
+	virtual void Tick(float DeltaSeconds) override;
 
 private:
 	/** Point light component name */

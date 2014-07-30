@@ -26,7 +26,7 @@ class USeaCraftVehicleWeaponComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 
 	// Begin UActorComponent Interface
-	virtual void InitializeComponent() OVERRIDE;
+	virtual void InitializeComponent() override;
 	// End UActorComponent Interface
 
 	/** Time between two consecutive shots */

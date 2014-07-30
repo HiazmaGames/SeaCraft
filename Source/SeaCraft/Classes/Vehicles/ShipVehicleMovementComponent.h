@@ -79,7 +79,7 @@ class UShipVehicleMovementComponent : public UPawnMovementComponent
 	UPROPERTY(EditAnywhere, Category = VehicleSetup)
 	FVector MotorLocation;
 
-	/** Override center of mass offset, makes tweaking easier [uu] */
+	/** override center of mass offset, makes tweaking easier [uu] */
 	UPROPERTY(EditAnywhere, Category = VehicleSetup, AdvancedDisplay)
 	FVector COMOffset;
 	
@@ -148,7 +148,7 @@ class UShipVehicleMovementComponent : public UPawnMovementComponent
 	float GetMaxTurnAngle() const;
 
 	//Begin UActorComponent Interface
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) OVERRIDE;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 	//End UActorComponent Interface
 
 protected:

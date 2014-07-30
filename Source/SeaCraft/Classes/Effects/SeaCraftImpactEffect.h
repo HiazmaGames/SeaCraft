@@ -31,7 +31,7 @@ class ASeaCraftImpactEffect : public AActor
 	FHitResult SurfaceHit;
 
 	/** Spawn effect */
-	virtual void PostInitializeComponents() OVERRIDE;
+	virtual void PostInitializeComponents() override;
 
 protected:
 
