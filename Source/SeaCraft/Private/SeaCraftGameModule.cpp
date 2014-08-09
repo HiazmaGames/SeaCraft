@@ -2,8 +2,6 @@
 
 #include "SeaCraft.h"
 
-#include "SeaCraft.generated.inl"
-
 class FSeaCraftGameModule : public FDefaultGameModuleImpl
 {
 	virtual void StartupModule() override
