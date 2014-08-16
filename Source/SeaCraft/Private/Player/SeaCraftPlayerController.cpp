@@ -15,7 +15,7 @@ void ASeaCraftPlayerController::InitInputSystem()
 	if (PlayerInput != NULL)
 	{
 		USeaCraftUserSettings *UserSettings = CastChecked<USeaCraftUserSettings>(GEngine->GetGameUserSettings());
-		UserSettings->ApplySettings();
+		UserSettings->ApplySettings(false);
 	}
 }
 
@@ -25,7 +25,7 @@ void ASeaCraftPlayerController::SetGraphicsQuality(int32 InGraphicsQuality)
 	{
 		USeaCraftUserSettings *UserSettings = CastChecked<USeaCraftUserSettings>(GEngine->GetGameUserSettings());
 		UserSettings->SetGraphicsQuality(InGraphicsQuality);
-		UserSettings->ApplySettings();
+		UserSettings->ApplySettings(false);
 	}
 }
 

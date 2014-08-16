@@ -1,4 +1,4 @@
-// Copyright 2011-2014 UFNA, LLC. All Rights Reserved.
+// Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SeaCraftUserSettings.generated.h"
 
@@ -7,45 +7,8 @@ class USeaCraftUserSettings : public UGameUserSettings
 {
 	GENERATED_UCLASS_BODY()
 
-	/** Applies all current user settings to the game and saves to permanent storage (e.g. file). */
-	virtual void ApplySettings() override;
-
-	/** Checks if any user settings is different from current */
-	virtual bool IsDirty() const override;
-
-	/** Is the y axis inverted? */
-	bool GetInvertedYAxis() const
-	{
-		return bInvertedYAxis;
-	}
-
-	/** Setter for inverted y axis */
-	void SetInvertedYAxis(bool bInvert)
-	{
-		bInvertedYAxis = bInvert;
-	}
-
-	/** Getter for the aim sensitivity */
-	float GetAimSensitivity() const
-	{
-		return AimSensitivity;
-	}
-
-	void SetAimSensitivity(float InSensitivity)
-	{
-		AimSensitivity = InSensitivity;
-	}
-
-	/** Getter for the gamma correction */
-	float GetGamma() const
-	{
-		return Gamma;
-	}
-
-	void SetGamma(float InGamma)
-	{
-		Gamma = InGamma;
-	}
+	/** Applies all current user settings to the game and saves to permanent storage (e.g. file), optionally checking for command line overrides. */
+	virtual void ApplySettings(bool bCheckForCommandLineOverrides) override;
 
 	int32 GetGraphicsQuality() const
 	{
@@ -57,47 +20,29 @@ class USeaCraftUserSettings : public UGameUserSettings
 		GraphicsQuality = InGraphicsQuality;
 	}
 
-	/** Checks if the Mouse Sensitivity user setting is different from current */
-	bool IsAimSensitivityDirty() const;
-
-	/** Checks if the Inverted Mouse user setting is different from current */
-	bool IsInvertedYAxisDirty() const;
-
 	/** Gets current fullscreen mode */
 	EWindowMode::Type GetCurrentFullscreenMode() const;
-
-	/** This function resets all settings to the current system settings */
-	virtual void ResetToCurrentSettings() override;
 
 	/** Interface UGameUserSettings */
 	virtual void SetToDefaults() override;
 
-	/** Changes to low quality graphics */
+	/** Changes to CUSTOM low quality graphics */
 	void SetLowQuality();
 
-	/** Changes to mid quality graphics */
+	/** Changes to CUSTOM mid quality graphics */
 	void SetMidQuality();
 
-	/** Changes to high quality graphics */
+	/** Changes to CUSTOM high quality graphics */
 	void SetHighQuality();
 
 private:
-	/** Is the y axis inverted or not? */
-	UPROPERTY(config)
-	bool bInvertedYAxis;
-
-	/** Holds the mouse sensitivity */
-	UPROPERTY(config)
-	float AimSensitivity;
-
-	/** Holds the gamma correction setting */
-	UPROPERTY(config)
-	float Gamma;
 
 	/**
 	 * Graphics Quality
 	 *	0 = Low
-	 *	1 = High
+	 *  1 = Mid
+	 *	2 = High
+	 *  3 = Ultra
 	 */
 	UPROPERTY(config)
 	int32 GraphicsQuality;
