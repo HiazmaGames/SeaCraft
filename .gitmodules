@@ -1,0 +1,6 @@
+[submodule "Plugins/VaOcean"]
+	path = Plugins/VaOcean
+	url = git@github.com:ufna/VaOcean.git
+[submodule "Plugins/VaQuoleUI"]
+	path = Plugins/VaQuoleUI
+	url = git@github.com:ufna/VaQuoleUI.git
