@@ -19,8 +19,8 @@ public class SeaCraft : ModuleRules
 		// Custom plugins
         PublicDependencyModuleNames.AddRange(
             new string[] {
-                "VaOceanPlugin",
-                "VaQuoleUIPlugin"
+                "VaOceanPlugin"
+                //"VaQuoleUIPlugin"
             });
 		
 		PrivateDependencyModuleNames.Add("OnlineSubsystem");
